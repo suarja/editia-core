@@ -58,14 +58,24 @@ export type { AuthConfig } from './types/auth';
  * initializeEditiaCore({
  *   clerkSecretKey: process.env.CLERK_SECRET_KEY!,
  *   supabaseUrl: process.env.SUPABASE_URL!,
- *   supabaseAnonKey: process.env.SUPABASE_ANON_KEY!,
- *   environment: 'production',
- *   logLevel: 'info'
+ *   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+ *   environment: 'production'
  * });
  * ```
  */
 export function initializeEditiaCore(config: AuthConfig): void {
   try {
+    // Validate required configuration
+    if (!config.clerkSecretKey) {
+      throw new Error('CLERK_SECRET_KEY is required');
+    }
+    if (!config.supabaseUrl) {
+      throw new Error('SUPABASE_URL is required');
+    }
+    if (!config.supabaseServiceRoleKey) {
+      throw new Error('SUPABASE_SERVICE_ROLE_KEY is required');
+    }
+
     // Initialize authentication service
     ClerkAuthService.initialize(config);
     

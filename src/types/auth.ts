@@ -57,7 +57,7 @@ export interface AuthenticatedRequest {
 export interface AuthConfig {
   clerkSecretKey: string;
   supabaseUrl: string;
-  supabaseAnonKey: string;
+  supabaseServiceRoleKey: string;
   environment?: 'development' | 'production' | 'test';
 }
 

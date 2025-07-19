@@ -37,8 +37,13 @@ export class ClerkAuthService {
       secretKey: config.clerkSecretKey,
     });
 
-    // Initialize Supabase client
-    this.supabaseClient = createClient(config.supabaseUrl, config.supabaseAnonKey);
+    // Initialize Supabase client with service role key to bypass RLS
+    this.supabaseClient = createClient(config.supabaseUrl, config.supabaseServiceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
 
 
   }
