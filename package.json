@@ -1,6 +1,6 @@
 {
   "name": "editia-core",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Core services and utilities for Editia applications - Authentication, Monetization, and Database Management",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
