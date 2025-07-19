@@ -90,7 +90,6 @@ export class ClerkAuthService {
       }
 
       // Get database user using Clerk user ID
-
       const { data: databaseUser, error: dbError } = await this.supabaseClient
         .from('users')
         .select('*')
@@ -98,15 +97,43 @@ export class ClerkAuthService {
         .single();
 
       if (dbError || !databaseUser) {
+        // Try to create the user automatically if they don't exist
+        console.log(`Creating database user for Clerk user: ${clerkUser.id}`);
+        
+        const { data: newUser, error: createError } = await this.supabaseClient
+          .from('users')
+          .insert([
+            {
+              clerk_user_id: clerkUser.id,
+              email: clerkUser.emailAddresses[0]?.emailAddress || '',
+              full_name: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || null,
+              avatar_url: clerkUser.imageUrl || null,
+              role: 'user',
+              subscription_tier: 'free',
+            }
+          ])
+          .select('*')
+          .single();
+
+        if (createError || !newUser) {
+          console.error('Failed to create database user:', createError);
+          return {
+            user: null,
+            clerkUser: clerkUser,
+            errorResponse: {
+              success: false,
+              error: 'Database user not found. Please complete onboarding.',
+              status: 404,
+              hint: 'User exists in Clerk but not in database. Complete onboarding process.',
+            },
+          };
+        }
+
+        console.log(`Successfully created database user: ${newUser.id}`);
         return {
-          user: null,
+          user: newUser as DatabaseUser,
           clerkUser: clerkUser,
-          errorResponse: {
-            success: false,
-            error: 'Database user not found. Please complete onboarding.',
-            status: 404,
-            hint: 'User exists in Clerk but not in database. Complete onboarding process.',
-          },
+          errorResponse: null,
         };
       }
 

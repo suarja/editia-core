@@ -1,323 +1,100 @@
-# @editia/core
+# Editia Core
 
-[![npm version](https://badge.fury.io/js/%40editia%2Fcore.svg)](https://badge.fury.io/js/%40editia%2Fcore)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
-[![Tests](https://img.shields.io/badge/Tests-Jest-red.svg)](https://jestjs.io/)
+Un package TypeScript pour l'authentification, la monétisation et la gestion de base de données unifiées pour toutes les applications Editia.
 
-Core services and utilities for Editia applications - Authentication, Monetization, and Database Management.
-
-## 🚀 Features
-
-- **🔐 Unified Authentication**: Clerk + Supabase integration with Express middleware
-- **💰 Monetization Services**: Feature flags, usage tracking, and subscription management
-- **🗄️ Database Management**: Type-safe Supabase integration with automatic type generation
-- **🛠️ Developer Experience**: Full TypeScript support, comprehensive testing, and detailed documentation
-
-## 📦 Installation
+## 🚀 Installation
 
 ```bash
-npm install @editia/core
+npm install editia-core
 ```
 
-## 🏗️ Architecture
+## 📦 Fonctionnalités
 
-This package provides a unified layer for all Editia applications:
+- **Authentification Clerk + Supabase** : Vérification JWT et gestion utilisateurs
+- **Middleware Express** : Protection de routes avec authentification
+- **TypeScript** : Types complets et sécurité de type
+- **Sans logging** : Délégation de la gestion des logs à l'application
 
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Mobile App    │    │  Server Primary  │    │ Server Analyzer │
-│                 │    │                  │    │                 │
-│ • useFeatureAccess│  │ • usageTrackingService│ │ • usageTrackingService│
-│ • usageTrackingService│ │ • usageLimitMiddleware│ │ • usageLimitMiddleware│
-│ • RevenueCat    │    │ • ResourceType   │    │ • ResourceType  │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-                              │
-                              ▼
-                    ┌─────────────────┐
-                    │   @editia/core  │
-                    │                 │
-                    │ • Auth Service  │
-                    │ • Feature Flags │
-                    │ • Usage Tracking│
-                    │ • Type Generation│
-                    └─────────────────┘
-```
-
-## 🚀 Quick Start
-
-### 1. Initialize the Package
+## 🔧 Initialisation
 
 ```typescript
-import { initializeEditiaCore } from '@editia/core';
+import { initializeEditiaCore } from 'editia-core';
 
-// Initialize with your configuration
+// Initialiser le package avec vos variables d'environnement
 initializeEditiaCore({
   clerkSecretKey: process.env.CLERK_SECRET_KEY!,
   supabaseUrl: process.env.SUPABASE_URL!,
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY!,
-  environment: 'production',
+  environment: process.env.NODE_ENV || 'development',
 });
 ```
 
-### 2. Use Authentication in Express
+## 🔐 Authentification
+
+### Utilisation du Service Directement
+
+```typescript
+import { ClerkAuthService } from 'editia-core';
+
+// Dans un endpoint Express
+app.get('/api/user-voices', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const { user, clerkUser, errorResponse } =
+      await ClerkAuthService.verifyUser(authHeader);
+
+    if (errorResponse) {
+      return res.status(errorResponse.status).json(errorResponse);
+    }
+
+    // user contient les données de l'utilisateur depuis Supabase
+    // clerkUser contient les données de l'utilisateur depuis Clerk
+
+    res.json({
+      success: true,
+      data: {
+        userId: user.id,
+        email: user.email,
+        clerkId: clerkUser.id,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+    });
+  }
+});
+```
+
+### Utilisation du Middleware
+
+```typescript
+import { authenticateUser } from 'editia-core';
+
+// Protéger une route avec le middleware
+app.get('/api/protected', authenticateUser, (req, res) => {
+  // req.user contient l'utilisateur authentifié
+  res.json({
+    success: true,
+    user: {
+      id: req.user?.id,
+      email: req.user?.email,
+    },
+  });
+});
+```
+
+## 📋 Exemple Complet : Endpoint User Voices
+
+Voici un exemple complet d'implémentation d'un endpoint utilisant le package :
 
 ```typescript
 import express from 'express';
-import { authenticateUser, requireProAccess } from '@editia/core';
+import { ClerkAuthService, initializeEditiaCore } from 'editia-core';
+import { createClient } from '@supabase/supabase-js';
 
-const app = express();
-
-// Basic authentication
-app.get('/api/user/profile', authenticateUser, (req, res) => {
-  // req.user is now available with the authenticated user
-  res.json({ user: req.user });
-});
-
-// Pro subscription required
-app.get('/api/pro/features', requireProAccess, (req, res) => {
-  // Only Pro users can access this endpoint
-  res.json({ features: ['advanced-analytics', 'priority-support'] });
-});
-```
-
-### 3. Use Authentication Service Directly
-
-```typescript
-import { ClerkAuthService, verifyUser, getUserId } from '@editia/core';
-
-// Verify user from auth header
-const authHeader = req.headers.authorization;
-const { user, clerkUser, errorResponse } = await verifyUser(authHeader);
-
-if (errorResponse) {
-  // Handle authentication error
-  return res.status(errorResponse.status).json(errorResponse);
-}
-
-// Get just the user ID
-const userId = await getUserId(authHeader);
-```
-
-## 📚 API Reference
-
-### Authentication
-
-#### `initializeEditiaCore(config: AuthConfig)`
-
-Initialize the package with your configuration.
-
-```typescript
-interface AuthConfig {
-  clerkSecretKey: string;
-  supabaseUrl: string;
-  supabaseAnonKey: string;
-  environment?: 'development' | 'production' | 'test';
-}
-```
-
-#### `authenticateUser(req, res, next)`
-
-Express middleware for basic authentication.
-
-#### `requireProAccess(req, res, next)`
-
-Express middleware that requires Pro subscription.
-
-#### `optionalAuth(req, res, next)`
-
-Express middleware for optional authentication.
-
-#### `verifyUser(authHeader?: string)`
-
-Verify a user from a Clerk JWT token.
-
-```typescript
-const result = await verifyUser('Bearer <clerk-jwt-token>');
-// Returns: { user: DatabaseUser | null, clerkUser: ClerkUser | null, errorResponse: AuthErrorResponse | null }
-```
-
-#### `getUserId(authHeader?: string)`
-
-Get the database user ID from a Clerk JWT token.
-
-```typescript
-const userId = await getUserId('Bearer <clerk-jwt-token>');
-// Returns: string | null
-```
-
-#### `hasProAccess(authHeader?: string)`
-
-Check if a user has Pro subscription access.
-
-```typescript
-const hasPro = await hasProAccess('Bearer <clerk-jwt-token>');
-// Returns: boolean
-```
-
-### Logging
-
-#### `Logger`
-
-A unified logging utility for consistent logging across the package.
-
-```typescript
-import { Logger } from '@editia/core';
-
-const logger = new Logger('MyService', 'info');
-logger.info('Service started');
-logger.error('An error occurred', error);
-```
-
-### Types
-
-All TypeScript types are exported for use in your applications:
-
-```typescript
-import type {
-  DatabaseUser,
-  AuthResult,
-  AuthErrorResponse,
-  AuthenticatedRequest,
-  AuthConfig,
-} from '@editia/core';
-```
-
-## 🔧 Configuration
-
-### Environment Variables
-
-```bash
-# Required
-CLERK_SECRET_KEY=sk_test_...
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-
-# Optional
-NODE_ENV=production
-LOG_LEVEL=info
-```
-
-### Supabase Setup
-
-1. Create a Supabase project
-2. Set up the required tables (see Database Schema below)
-3. Configure Row Level Security (RLS) policies
-4. Get your project URL and anon key
-
-### Clerk Setup
-
-1. Create a Clerk application
-2. Configure authentication providers
-3. Get your secret key from the Clerk dashboard
-4. Set up webhooks for user synchronization
-
-## 🗄️ Database Schema
-
-The package expects the following tables in your Supabase database:
-
-### `users` Table
-
-```sql
-CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  email TEXT,
-  full_name TEXT,
-  avatar_url TEXT,
-  role TEXT DEFAULT 'user',
-  clerk_user_id TEXT UNIQUE NOT NULL,
-  subscription_tier TEXT DEFAULT 'free',
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-```
-
-### `feature_flags` Table
-
-```sql
-CREATE TABLE feature_flags (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  description TEXT,
-  required_plan TEXT REFERENCES subscription_plans(id),
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-```
-
-### `user_usage` Table
-
-```sql
-CREATE TABLE user_usage (
-  user_id UUID PRIMARY KEY REFERENCES users(id),
-  current_plan_id TEXT REFERENCES subscription_plans(id),
-  videos_generated INTEGER DEFAULT 0,
-  videos_generated_limit INTEGER NOT NULL,
-  source_videos_used INTEGER DEFAULT 0,
-  source_videos_limit INTEGER NOT NULL,
-  voice_clones_used INTEGER DEFAULT 0,
-  voice_clones_limit INTEGER NOT NULL,
-  account_analysis_used INTEGER DEFAULT 0,
-  account_analysis_limit INTEGER NOT NULL,
-  next_reset_date TIMESTAMPTZ NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-```
-
-### `subscription_plans` Table
-
-```sql
-CREATE TABLE subscription_plans (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  description TEXT,
-  videos_generated_limit INTEGER NOT NULL,
-  source_videos_limit INTEGER NOT NULL,
-  voice_clones_limit INTEGER NOT NULL,
-  account_analysis_limit INTEGER NOT NULL,
-  is_unlimited BOOLEAN DEFAULT false,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-```
-
-## 🧪 Testing
-
-The package uses Vitest for fast and reliable testing:
-
-```bash
-# Run all tests
-npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Run tests with coverage
-npm run test:coverage
-
-# Run linting
-npm run lint
-
-# Format code
-npm run format
-```
-
-## 📖 Examples
-
-### Express Server Setup
-
-```typescript
-import express from 'express';
-import {
-  initializeEditiaCore,
-  authenticateUser,
-  requireProAccess,
-} from '@editia/core';
-
-const app = express();
-
-// Initialize Editia Core
+// Initialiser le package
 initializeEditiaCore({
   clerkSecretKey: process.env.CLERK_SECRET_KEY!,
   supabaseUrl: process.env.SUPABASE_URL!,
@@ -325,19 +102,59 @@ initializeEditiaCore({
   environment: 'production',
 });
 
-// Public routes
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
+const app = express();
+app.use(express.json());
 
-// Protected routes
-app.get('/api/user/profile', authenticateUser, (req, res) => {
-  res.json({ user: req.user });
-});
+// Endpoint pour récupérer les voix de l'utilisateur
+app.get('/api/user-voices', async (req, res) => {
+  try {
+    // 1. Authentifier l'utilisateur avec le package
+    const authHeader = req.headers.authorization;
+    const { user, errorResponse } =
+      await ClerkAuthService.verifyUser(authHeader);
 
-// Pro-only routes
-app.get('/api/pro/analytics', requireProAccess, (req, res) => {
-  res.json({ analytics: 'pro-features' });
+    if (errorResponse || !user) {
+      return res.status(errorResponse?.status || 401).json(
+        errorResponse || {
+          success: false,
+          error: 'User not found',
+        }
+      );
+    }
+
+    // 2. Utiliser Supabase pour récupérer les données
+    const supabase = createClient(
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_ANON_KEY!
+    );
+
+    const { data, error } = await supabase
+      .from('voice_clones')
+      .select('*')
+      .eq('user_id', user.id);
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+
+    // 3. Retourner les données
+    return res.status(200).json({
+      success: true,
+      data,
+      user: {
+        id: user.id,
+        email: user.email,
+      },
+    });
+  } catch (error: any) {
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Internal server error',
+    });
+  }
 });
 
 app.listen(3000, () => {
@@ -345,111 +162,126 @@ app.listen(3000, () => {
 });
 ```
 
-### Feature Access Check
+## 🎯 API Reference
+
+### ClerkAuthService
+
+#### `verifyUser(authHeader?: string)`
+
+Vérifie un token JWT Clerk et retourne les informations utilisateur.
+
+**Paramètres :**
+
+- `authHeader` (string, optionnel) : Header Authorization (format: "Bearer <token>")
+
+**Retour :**
 
 ```typescript
-import { verifyUser, hasProAccess } from '@editia/core';
-
-async function checkFeatureAccess(authHeader: string, featureId: string) {
-  // Verify user
-  const { user, errorResponse } = await verifyUser(authHeader);
-
-  if (errorResponse) {
-    throw new Error(`Authentication failed: ${errorResponse.error}`);
-  }
-
-  // Check Pro access for premium features
-  if (featureId === 'premium-analytics') {
-    const hasPro = await hasProAccess(authHeader);
-    if (!hasPro) {
-      throw new Error('Pro subscription required');
-    }
-  }
-
-  return { user, hasAccess: true };
+{
+  user: DatabaseUser | null; // Utilisateur depuis Supabase
+  clerkUser: ClerkUser | null; // Utilisateur depuis Clerk
+  errorResponse: AuthErrorResponse | null; // Erreur si échec
 }
 ```
 
-## 🔄 Migration Guide
+#### `getDatabaseUserId(authHeader?: string)`
 
-### From Individual Services
+Récupère uniquement l'ID utilisateur depuis la base de données.
 
-If you're currently using separate authentication services in your applications:
+**Retour :** `string | null`
 
-1. **Install the package**: `npm install @editia/core`
-2. **Initialize**: Call `initializeEditiaCore()` in your app startup
-3. **Replace middleware**: Use `authenticateUser` instead of custom auth middleware
-4. **Update imports**: Import types and utilities from `@editia/core`
-5. **Test thoroughly**: Ensure all authentication flows work correctly
+### Middleware
 
-### From Server-Primary/Server-Analyzer
+#### `authenticateUser`
 
-The package consolidates the best patterns from both servers:
+Middleware Express pour protéger les routes.
 
-- **Server-Primary patterns**: Comprehensive error handling and logging
-- **Server-Analyzer patterns**: Clean middleware structure and type safety
+**Utilisation :**
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
-
-### Development Setup
-
-```bash
-# Clone the repository
-git clone https://github.com/editia/core.git
-cd editia-core
-
-# Install dependencies
-npm install
-
-# Run tests
-npm test
-
-# Build the package
-npm run build
-
-# Run linting
-npm run lint
+```typescript
+app.get('/protected', authenticateUser, (req, res) => {
+  // req.user contient l'utilisateur authentifié
+});
 ```
 
-## 📄 License
+### Types
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+```typescript
+interface DatabaseUser {
+  id: string;
+  email: string;
+  full_name?: string;
+  clerk_user_id: string;
+  created_at: string;
+  updated_at: string;
+}
 
-## 🆘 Support
+interface AuthErrorResponse {
+  success: false;
+  error: string;
+  status: number;
+}
 
-- 📧 Email: support@editia.app
-- 🐛 Issues: [GitHub Issues](https://github.com/editia/core/issues)
-- 📖 Documentation: [GitHub Wiki](https://github.com/editia/core/wiki)
+interface AuthenticatedRequest extends Request {
+  user?: DatabaseUser;
+}
+```
 
-## 🔮 Roadmap
+## 🔄 Migration depuis l'ancien système
 
-### Phase 1 (Current) ✅
+Si vous migrez depuis un système d'authentification existant :
 
-- [x] Unified authentication service
-- [x] Express middleware
-- [x] Type definitions
-- [x] Basic testing
+1. **Remplacer les imports :**
 
-### Phase 2 (Next)
+   ```typescript
+   // Avant
+   import { ClerkAuthService } from '../services/clerkAuthService';
 
-- [ ] Feature flags service
-- [ ] Usage tracking service
-- [ ] Subscription management
-- [ ] Database type generation
+   // Après
+   import { ClerkAuthService } from 'editia-core';
+   ```
 
-### Phase 3 (Future)
+2. **Initialiser le package :**
 
-- [ ] RevenueCat integration
-- [ ] Advanced analytics
-- [ ] Performance monitoring
-- [ ] Plugin system
+   ```typescript
+   // Ajouter au début de votre app.ts
+   import { initializeEditiaCore } from 'editia-core';
 
----
+   initializeEditiaCore({
+     clerkSecretKey: process.env.CLERK_SECRET_KEY!,
+     supabaseUrl: process.env.SUPABASE_URL!,
+     supabaseAnonKey: process.env.SUPABASE_ANON_KEY!,
+     environment: process.env.NODE_ENV || 'development',
+   });
+   ```
 
-Made with ❤️ by the Editia Team
+3. **Les appels d'API restent identiques :**
+   ```typescript
+   // Le code existant continue de fonctionner
+   const { user, clerkUser, errorResponse } =
+     await ClerkAuthService.verifyUser(authHeader);
+   ```
+
+## 🧪 Tests
+
+Le package inclut des tests complets avec Vitest :
+
+```bash
+npm test
+```
+
+## 📝 Logs
+
+**Important :** Ce package ne gère pas les logs. La gestion des logs est déléguée à l'application principale pour une meilleure flexibilité et contrôle.
+
+## 🤝 Contribution
+
+1. Fork le repository
+2. Créer une branche feature (`git checkout -b feature/amazing-feature`)
+3. Commit les changements (`git commit -m 'Add amazing feature'`)
+4. Push vers la branche (`git push origin feature/amazing-feature`)
+5. Ouvrir une Pull Request
+
+## 📄 Licence
+
+MIT License - voir le fichier [LICENSE](LICENSE) pour plus de détails.
