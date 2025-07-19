@@ -7,15 +7,16 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "vitest",
+    "test": "vitest --run",
     "test:watch": "vitest --watch",
+    "test:run": "vitest --run",
     "test:coverage": "vitest --coverage",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "format": "prettier --write src/**/*.ts",
     "sync-types": "ts-node scripts/sync-types.ts",
     "generate-types": "ts-node scripts/generate-types.ts",
-    "prepublishOnly": "npm run build && npm test",
+    "prepublishOnly": "npm run build && npm run test:run",
     "clean": "rm -rf dist",
     "docs": "typedoc src/index.ts --out docs/api"
   },

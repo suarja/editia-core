@@ -11,6 +11,9 @@ import {
   AuthConfig,
   JWTVerificationResult,
 } from '../../types/auth';
+
+// Re-export types for external use
+export type { AuthResult, DatabaseUser, AuthConfig, JWTVerificationResult };
 import { Database } from '../../types/database';
 
 
