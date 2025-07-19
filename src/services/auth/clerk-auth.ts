@@ -109,6 +109,7 @@ export class ClerkAuthService {
           .from('users')
           .insert([
             {
+              id: clerkUser.id, // Use Clerk user ID as database user ID
               clerk_user_id: clerkUser.id,
               email: clerkUser.emailAddresses[0]?.emailAddress || null,
               full_name: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || null,
