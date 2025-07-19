@@ -105,11 +105,10 @@ export class ClerkAuthService {
           .insert([
             {
               clerk_user_id: clerkUser.id,
-              email: clerkUser.emailAddresses[0]?.emailAddress || '',
+              email: clerkUser.emailAddresses[0]?.emailAddress || null,
               full_name: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || null,
               avatar_url: clerkUser.imageUrl || null,
-              role: 'user',
-              subscription_tier: 'free',
+              role: 'user'
             }
           ])
           .select('*')
