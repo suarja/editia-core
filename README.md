@@ -57,7 +57,6 @@ initializeEditiaCore({
   supabaseUrl: process.env.SUPABASE_URL!,
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY!,
   environment: 'production',
-  logLevel: 'info'
 });
 ```
 
@@ -114,7 +113,6 @@ interface AuthConfig {
   supabaseUrl: string;
   supabaseAnonKey: string;
   environment?: 'development' | 'production' | 'test';
-  logLevel?: 'debug' | 'info' | 'warn' | 'error';
 }
 ```
 
@@ -286,6 +284,8 @@ CREATE TABLE subscription_plans (
 
 ## 🧪 Testing
 
+The package uses Vitest for fast and reliable testing:
+
 ```bash
 # Run all tests
 npm test
@@ -309,7 +309,11 @@ npm run format
 
 ```typescript
 import express from 'express';
-import { initializeEditiaCore, authenticateUser, requireProAccess } from '@editia/core';
+import {
+  initializeEditiaCore,
+  authenticateUser,
+  requireProAccess,
+} from '@editia/core';
 
 const app = express();
 
@@ -349,7 +353,7 @@ import { verifyUser, hasProAccess } from '@editia/core';
 async function checkFeatureAccess(authHeader: string, featureId: string) {
   // Verify user
   const { user, errorResponse } = await verifyUser(authHeader);
-  
+
   if (errorResponse) {
     throw new Error(`Authentication failed: ${errorResponse.error}`);
   }
@@ -426,18 +430,21 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🔮 Roadmap
 
 ### Phase 1 (Current) ✅
+
 - [x] Unified authentication service
 - [x] Express middleware
 - [x] Type definitions
 - [x] Basic testing
 
 ### Phase 2 (Next)
+
 - [ ] Feature flags service
 - [ ] Usage tracking service
 - [ ] Subscription management
 - [ ] Database type generation
 
 ### Phase 3 (Future)
+
 - [ ] RevenueCat integration
 - [ ] Advanced analytics
 - [ ] Performance monitoring
@@ -445,4 +452,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-Made with ❤️ by the Editia Team 
+Made with ❤️ by the Editia Team
