@@ -1566,6 +1566,32 @@ export type Database = {
         }
         Returns: undefined
       }
+      create_user_if_not_exists: {
+        Args: {
+          p_clerk_user_id: string
+          p_email: string
+          p_full_name: string
+          p_avatar_url?: string
+        }
+        Returns: {
+          id: string
+          clerk_user_id: string
+          email: string
+          full_name: string
+          avatar_url: string
+          role: string
+          created_at: string
+          updated_at: string
+        }[]
+      }
+      decrement_user_usage: {
+        Args: {
+          p_user_id: string
+          p_field_to_decrement: string
+          p_decrement_amount?: number
+        }
+        Returns: number
+      }
       increment_user_usage: {
         Args: { p_user_id: string; p_field_to_increment: string }
         Returns: undefined

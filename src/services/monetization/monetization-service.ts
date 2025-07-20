@@ -303,6 +303,40 @@ export class MonetizationService {
   }
 
   /**
+   * Decrement usage for a specific action
+   */
+  public async decrementUsage(
+    userId: string,
+    action: 'video_generation' | 'source_video_upload' | 'voice_clone' | 'account_analysis'
+  ): Promise<boolean> {
+    try {
+      const fieldMap = {
+        video_generation: 'videos_generated',
+        source_video_upload: 'source_videos_used',
+        voice_clone: 'voice_clones_used',
+        account_analysis: 'account_analysis_used',
+      };
+
+      const field = fieldMap[action];
+      const { error } = await this.supabaseClient.rpc('decrement_user_usage', { 
+        p_user_id: userId, 
+        p_field_to_decrement: field 
+      });
+
+      if (error) {
+        console.error('Error decrementing usage:', error);
+        return false;
+      }
+
+      // Clear cache for this user
+      this.clearUserCache(userId);  
+      return true;
+    } catch (error) {
+      console.error('Error decrementing usage:', error);
+      return false;
+    }
+  }
+  /**
    * Get current usage for a user
    */
   public async getUserUsage(userId: string): Promise<UserUsage | null> {
