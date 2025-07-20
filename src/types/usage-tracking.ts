@@ -1,34 +1,63 @@
 /**
  * Usage tracking types for Editia Core
- * To be implemented in Phase 2
+ * 
+ * This file re-exports usage tracking types from the centralized monetization types
+ * and provides additional usage-specific interfaces.
  */
 
-export interface UserUsage {
-  user_id: string;
-  current_plan_id: string;
-  videos_generated: number;
-  videos_generated_limit: number;
-  source_videos_used: number;
-  source_videos_limit: number;
-  voice_clones_used: number;
-  voice_clones_limit: number;
-  account_analysis_used: number;
-  account_analysis_limit: number;
-  next_reset_date: string;
-  created_at?: string;
-  updated_at?: string;
-}
+import type { UserUsage as DatabaseUserUsage } from './database';
+import type { UsageInfo, UsageField } from './monetization';
 
+// ============================================================================
+// RE-EXPORTS
+// ============================================================================
+
+/**
+ * Re-export UserUsage from database types to avoid duplication
+ */
+export type UserUsage = DatabaseUserUsage;
+
+/**
+ * Usage limit information for a specific resource
+ */
 export interface UsageLimit {
-  resourceType: string;
+  resourceType: UsageField;
   currentUsage: number;
   limit: number;
   remaining: number;
   resetDate?: string;
 }
 
+/**
+ * Usage tracking result
+ */
 export interface UsageTrackingResult {
   success: boolean;
   usage: UserUsage | null;
   error?: string;
+}
+
+/**
+ * Detailed usage information for all features
+ */
+export interface DetailedUsageInfo {
+  videoGeneration: UsageInfo;
+  sourceVideos: UsageInfo;
+  voiceClones: UsageInfo;
+  accountAnalysis: UsageInfo;
+  scriptConversations: UsageInfo;
+  nextResetDate: string;
+}
+
+/**
+ * Usage summary for dashboard display
+ */
+export interface UsageSummary {
+  totalUsage: number;
+  totalLimit: number;
+  remainingUsage: number;
+  usagePercentage: number;
+  features: {
+    [key in UsageField]: UsageInfo;
+  };
 } 

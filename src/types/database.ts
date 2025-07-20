@@ -169,4 +169,34 @@ export const hasReachedLimit = (used: number, limit: number): boolean => {
 export const getUsagePercentage = (used: number, limit: number): number => {
   if (limit === 0) return 0;
   return Math.min(100, (used / limit) * 100);
-}; 
+};
+
+// ============================================================================
+// RE-EXPORTS FROM MONETIZATION TYPES
+// ============================================================================
+
+// Re-export monetization types for backward compatibility
+export type {
+  FeatureId,
+  Action,
+  UsageField,
+  UsageInfo,
+  FeatureAccessResult,
+  UsageValidationResult,
+  MonetizationCheckResult,
+} from './monetization';
+
+export {
+  FEATURES,
+  ACTIONS,
+  USAGE_FIELDS,
+  FEATURE_TO_ACTION_MAP,
+  ACTION_TO_USAGE_FIELD_MAP,
+  FEATURE_TO_USAGE_FIELD_MAP,
+  getActionForFeature,
+  getUsageFieldForAction,
+  getUsageFieldForFeature,
+  isValidFeatureId,
+  isValidAction,
+  isValidUsageField,
+} from './monetization'; 

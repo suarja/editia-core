@@ -1,17 +1,21 @@
 /**
- * Editia Core Types - Main Export
+ * Editia Core Types - Main Export File
  * 
- * This file provides a clean, organized export of all types and utilities
- * for the Editia Core package.
+ * This file provides a centralized export point for all types used in Editia Core.
+ * It organizes types by category and provides backward compatibility.
  */
 
 // ============================================================================
-// CORE TYPES
+// DATABASE TYPES
 // ============================================================================
 
-// Database and mapping types
-export type { Database } from './database';
 export type {
+  Database,
+  Tables,
+  TablesInsert,
+  TablesUpdate,
+  Enums,
+  CompositeTypes,
   TableRow,
   TableInsert,
   TableUpdate,
@@ -19,139 +23,133 @@ export type {
 } from './database';
 
 // ============================================================================
-// ABSTRACTED TYPES
+// MONETIZATION TYPES
 // ============================================================================
 
-// Monetization types
+export type {
+  FeatureId,
+  Action,
+  UsageField,
+  UsageInfo,
+  FeatureAccessResult,
+  UsageValidationResult,
+  MonetizationCheckResult,
+} from './monetization';
+
+export {
+  FEATURES,
+  ACTIONS,
+  USAGE_FIELDS,
+  FEATURE_TO_ACTION_MAP,
+  ACTION_TO_USAGE_FIELD_MAP,
+  FEATURE_TO_USAGE_FIELD_MAP,
+  getActionForFeature,
+  getUsageFieldForAction,
+  getUsageFieldForFeature,
+  isValidFeatureId,
+  isValidAction,
+  isValidUsageField,
+} from './monetization';
+
+// ============================================================================
+// USAGE TRACKING TYPES
+// ============================================================================
+
+export type {
+  UserUsage,
+  UsageLimit,
+  UsageTrackingResult,
+  DetailedUsageInfo,
+  UsageSummary,
+} from './usage-tracking';
+
+// ============================================================================
+// BUSINESS TYPES
+// ============================================================================
+
 export type {
   PlanIdentifier,
-  UserUsage,
+  User,
   SubscriptionPlan,
   FeatureFlag,
-} from './database';
-
-// Authentication types
-export type { User } from './database';
-
-// Content types
-export type {
   EditorialProfile,
   VoiceClone,
   Video,
 } from './database';
 
 // ============================================================================
+// CONSTANTS
+// ============================================================================
+
+export {
+  DEFAULT_PLAN_LIMITS,
+  PLAN_HIERARCHY,
+  FEATURE_FLAGS,
+  USAGE_RESET_PERIODS,
+  USAGE_WARNING_THRESHOLDS,
+  MAXIMUM_LIMITS,
+  MINIMUM_LIMITS,
+  CACHE_TIMEOUTS,
+  MONETIZATION_ERROR_CODES,
+} from './constants';
+
+export type {
+  FeatureFlagId,
+  MonetizationErrorCode,
+} from './constants';
+
+// ============================================================================
 // UTILITY FUNCTIONS
 // ============================================================================
 
-// Type validation and access control
 export {
   isValidPlanIdentifier,
   getPlanLevel,
   hasPlanAccess,
-} from './database';
-
-// Usage calculation utilities
-export {
   calculateRemainingUsage,
   hasReachedLimit,
   getUsagePercentage,
 } from './database';
 
 // ============================================================================
-// TYPE GUARDS
+// BACKWARD COMPATIBILITY
 // ============================================================================
 
-// Import types for type guards
-import type { User, UserUsage, SubscriptionPlan, FeatureFlag } from './database';
-
-/**
- * Type guard to check if an object is a valid User
- */
-export const isUser = (obj: any): obj is User => {
-  return obj && typeof obj.id === 'string' && typeof obj.clerk_user_id === 'string';
-};
-
-/**
- * Type guard to check if an object is a valid UserUsage
- */
-export const isUserUsage = (obj: any): obj is UserUsage => {
-  return obj && 
-    typeof obj.user_id === 'string' && 
-    typeof obj.current_plan_id === 'string' &&
-    typeof obj.videos_generated === 'number';
-};
-
-/**
- * Type guard to check if an object is a valid SubscriptionPlan
- */
-export const isSubscriptionPlan = (obj: any): obj is SubscriptionPlan => {
-  return obj && 
-    typeof obj.id === 'string' && 
-    typeof obj.name === 'string' &&
-    typeof obj.videos_generated_limit === 'number';
-};
-
-/**
- * Type guard to check if an object is a valid FeatureFlag
- */
-export const isFeatureFlag = (obj: any): obj is FeatureFlag => {
-  return obj && 
-    typeof obj.id === 'string' && 
-    typeof obj.name === 'string' &&
-    typeof obj.is_active === 'boolean';
-};
+// Re-export legacy types and functions for backward compatibility
+export {
+  // Legacy types
+  FeatureIdLegacy,
+  ActionLegacy,
+  UsageFieldLegacy,
+  UserUsageLegacy,
+  
+  // Legacy constants
+  LEGACY_FEATURES,
+  LEGACY_ACTIONS,
+  
+  // Compatibility functions
+  toFeatureId,
+  toAction,
+  toUsageField,
+  toLegacyUserUsage,
+  showDeprecationWarning,
+} from './compatibility';
 
 // ============================================================================
-// CONSTANTS
+// LEGACY EXPORTS (for backward compatibility)
 // ============================================================================
 
-/**
- * Default plan limits for new users
- */
-export const DEFAULT_PLAN_LIMITS = {
-  free: {
-    videos_generated_limit: 1,
-    source_videos_limit: 5,
-    voice_clones_limit: 0,
-    account_analysis_limit: 1,
-  },
-  creator: {
-    videos_generated_limit: 15,
-    source_videos_limit: 50,
-    voice_clones_limit: 1,
-    account_analysis_limit: 4,
-  },
-  pro: {
-    videos_generated_limit: -1, // unlimited
-    source_videos_limit: -1, // unlimited
-    voice_clones_limit: 2,
-    account_analysis_limit: -1, // unlimited
-  },
-} as const;
+// Re-export everything from database for backward compatibility
+export * from './database';
 
-/**
- * Plan hierarchy for access control
- */
-export const PLAN_HIERARCHY = {
-  free: 0,
-  creator: 1,
-  pro: 2,
-} as const;
+// Re-export everything from monetization for backward compatibility
+export * from './monetization';
 
-/**
- * Feature flag IDs for common features
- */
-export const FEATURE_FLAGS = {
-  ACCOUNT_ANALYSIS: 'account_analysis',
-  CHAT_AI: 'chat_ai',
-  SCRIPT_GENERATION: 'script_generation',
-  VIDEO_GENERATION: 'video_generation',
-  SOURCE_VIDEOS: 'source_videos',
-  ADVANCED_SUBTITLES: 'advanced_subtitles',
-  VOICE_CLONE: 'voice_clone',
-  MULTIPLE_VOICES: 'multiple_voices',
-  NICHE_ANALYSIS: 'niche_analysis',
-  CONTENT_IDEAS: 'content_ideas',
-  SCHEDULING: 'scheduling',
-} as const; 
+// Re-export everything from usage-tracking for backward compatibility
+export * from './usage-tracking';
+
+// Re-export everything from constants for backward compatibility
+export * from './constants';
+
+// Re-export everything from compatibility for backward compatibility
+export * from './compatibility'; 

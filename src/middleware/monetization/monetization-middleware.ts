@@ -6,16 +6,23 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { MonetizationService, MonetizationCheckResult } from '../../services/monetization/monetization-service';
+import { MonetizationService } from '../../services/monetization/monetization-service';
+import {
+  FeatureId,
+  Action,
+  MonetizationCheckResult,
+  isValidFeatureId,
+  isValidAction,
+} from '../../types/monetization';
 
 // ============================================================================
 // TYPES
 // ============================================================================
 
 export interface MonetizationMiddlewareConfig {
-  featureId: string;
+  featureId: FeatureId;
   incrementUsage?: boolean;
-  action?: 'video_generation' | 'source_video_upload' | 'voice_clone' | 'account_analysis';
+  action?: Action;
   errorHandler?: (req: Request, res: Response, result: MonetizationCheckResult) => void;
 }
 
@@ -25,7 +32,7 @@ export interface MonetizationRequest extends Request {
     currentPlan: string;
     remainingUsage: number;
     totalLimit: number;
-    featureId: string;
+    featureId: FeatureId;
   };
 }
 
@@ -39,6 +46,24 @@ export interface MonetizationRequest extends Request {
 export function createMonetizationMiddleware(config: MonetizationMiddlewareConfig) {
   return async (req: MonetizationRequest, res: Response, next: NextFunction) => {
     try {
+      // Validate feature ID
+      if (!isValidFeatureId(config.featureId)) {
+        return res.status(400).json({
+          success: false,
+          error: `Invalid feature ID: ${config.featureId}`,
+          code: 'INVALID_FEATURE_ID',
+        });
+      }
+
+      // Validate action if provided
+      if (config.action && !isValidAction(config.action)) {
+        return res.status(400).json({
+          success: false,
+          error: `Invalid action: ${config.action}`,
+          code: 'INVALID_ACTION',
+        });
+      }
+
       // Get user ID from request (assuming it's set by auth middleware)
       const userId = (req as any).user?.id || (req as any).userId;
       
@@ -124,6 +149,12 @@ export function createUsageIncrementMiddleware() {
       return next();
     }
 
+    // Validate action
+    if (!isValidAction(action)) {
+      console.error(`Invalid action in usage increment middleware: ${action}`);
+      return next();
+    }
+
     // Override res.send to intercept the response
     res.send = function(body: any) {
       try {
@@ -198,55 +229,67 @@ export function logMonetizationChecks() {
 // PRESET MIDDLEWARE FOR COMMON FEATURES
 // ============================================================================
 
+import { FEATURES, ACTIONS } from '../../types/monetization';
+
 /**
  * Middleware for video generation endpoint
  */
 export const videoGenerationMiddleware = createMonetizationMiddleware({
-  featureId: 'video_generation',
+  featureId: FEATURES.VIDEO_GENERATION,
   incrementUsage: true,
-  action: 'video_generation',
+  action: ACTIONS.VIDEO_GENERATION,
 });
 
 /**
  * Middleware for source video upload endpoint
  */
 export const sourceVideoUploadMiddleware = createMonetizationMiddleware({
-  featureId: 'source_videos',
+  featureId: FEATURES.SOURCE_VIDEOS,
   incrementUsage: true,
-  action: 'source_video_upload',
+  action: ACTIONS.SOURCE_VIDEO_UPLOAD,
 });
 
 /**
  * Middleware for voice cloning endpoint
  */
 export const voiceCloneMiddleware = createMonetizationMiddleware({
-  featureId: 'voice_clone',
+  featureId: FEATURES.VOICE_CLONE,
   incrementUsage: true,
-  action: 'voice_clone',
+  action: ACTIONS.VOICE_CLONE,
 });
 
 /**
  * Middleware for account analysis endpoint
  */
 export const accountAnalysisMiddleware = createMonetizationMiddleware({
-  featureId: 'account_analysis',
+  featureId: FEATURES.ACCOUNT_ANALYSIS,
   incrementUsage: true,
-  action: 'account_analysis',
+  action: ACTIONS.ACCOUNT_ANALYSIS,
 });
 
 /**
- * Middleware for script generation (no usage increment)
+ * Middleware for script generation
  */
 export const scriptGenerationMiddleware = createMonetizationMiddleware({
-  featureId: 'script_generation',
-  incrementUsage: false,
+  featureId: FEATURES.SCRIPT_GENERATION,
+  incrementUsage: true,
+  action: ACTIONS.SCRIPT_CONVERSATIONS,
+});
+
+/**
+ * Middleware for script conversations
+ */
+export const scriptConversationsMiddleware = createMonetizationMiddleware({
+  featureId: FEATURES.SCRIPT_CONVERSATIONS,
+  incrementUsage: true,
+  action: ACTIONS.SCRIPT_CONVERSATIONS,
 });
 
 /**
  * Middleware for chat AI (no usage increment)
  */
 export const chatAiMiddleware = createMonetizationMiddleware({
-  featureId: 'chat_ai',
+  featureId: FEATURES.CHAT_AI,
   incrementUsage: false,
 });
 
@@ -296,30 +339,45 @@ export function userFriendlyMonetizationErrorHandler(
   result: MonetizationCheckResult
 ) {
   const messages = {
-    'video_generation': {
+    [FEATURES.VIDEO_GENERATION]: {
       title: 'Video Generation Limit Reached',
       message: 'You have reached your video generation limit for this month.',
       upgradeMessage: 'Upgrade to generate more videos.',
     },
-    'source_videos': {
+    [FEATURES.SOURCE_VIDEOS]: {
       title: 'Source Video Upload Limit Reached',
       message: 'You have reached your source video upload limit.',
       upgradeMessage: 'Upgrade to upload more source videos.',
     },
-    'voice_clone': {
+    [FEATURES.VOICE_CLONE]: {
       title: 'Voice Cloning Not Available',
       message: 'Voice cloning is not available in your current plan.',
       upgradeMessage: 'Upgrade to access voice cloning features.',
     },
-    'account_analysis': {
+    [FEATURES.ACCOUNT_ANALYSIS]: {
       title: 'Account Analysis Limit Reached',
       message: 'You have reached your account analysis limit.',
       upgradeMessage: 'Upgrade for unlimited account analysis.',
     },
+    [FEATURES.SCRIPT_CONVERSATIONS]: {
+      title: 'Script Conversations Limit Reached',
+      message: 'You have reached your script conversations limit.',
+      upgradeMessage: 'Upgrade for unlimited script conversations.',
+    },
+    [FEATURES.SCRIPT_GENERATION]: {
+      title: 'Script Generation Limit Reached',
+      message: 'You have reached your script generation limit.',
+      upgradeMessage: 'Upgrade for unlimited script generation.',
+    },
+    [FEATURES.CHAT_AI]: {
+      title: 'Chat AI Not Available',
+      message: 'Chat AI is not available in your current plan.',
+      upgradeMessage: 'Upgrade to access Chat AI features.',
+    },
   };
 
-  const featureId = result.details?.featureId || 'unknown';
-  const featureMessages = messages[featureId as keyof typeof messages] || {
+  const featureId = result.details?.featureId || FEATURES.VIDEO_GENERATION;
+  const featureMessages = messages[featureId] || {
     title: 'Feature Access Denied',
     message: 'This feature is not available in your current plan.',
     upgradeMessage: 'Upgrade to access this feature.',

@@ -12,9 +12,6 @@
 export {
   MonetizationService,
   MonetizationConfig,
-  FeatureAccessResult,
-  UsageValidationResult,
-  MonetizationCheckResult,
 } from './monetization-service';
 
 // ============================================================================
