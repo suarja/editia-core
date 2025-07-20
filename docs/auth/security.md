@@ -1,79 +1,83 @@
-# Sécurité & Row Level Security (RLS)
+# Security & Row Level Security (RLS)
 
-## Vue d'Ensemble
+## Overview
 
-Ce document détaille les mesures de sécurité mises en place dans le package `@editia/core`, notamment la gestion des politiques Row Level Security (RLS) de Supabase.
+This document details the security measures implemented in the `@editia/core` package, with a particular focus on the management of Supabase Row Level Security (RLS) policies and the secure handling of API keys.
 
-## 🔐 Authentification
+## 🔐 Authentication
 
 ### Clerk JWT Tokens
 
-Le package utilise Clerk pour l'authentification avec des tokens JWT sécurisés :
+The package leverages Clerk for robust and secure user authentication using JSON Web Tokens (JWTs).
 
 ```typescript
-// Vérification du token JWT
+// Verifying the JWT token
 const { user, errorResponse } = await ClerkAuthService.verifyUser(authHeader);
 ```
 
-**Sécurité :**
+**Security Features:**
 
-- **Signature numérique** : Les tokens sont signés par Clerk
-- **Expiration automatique** : Les tokens expirent après un délai défini
-- **Vérification côté serveur** : Validation avec la clé secrète Clerk
+-   **Digital Signatures:** All tokens are digitally signed by Clerk using a secret key, ensuring their integrity.
+-   **Automatic Expiration:** Tokens have a limited lifetime and automatically expire, reducing the risk of replay attacks.
+-   **Server-Side Verification:** Tokens are verified on the server using the Clerk secret key, preventing tampering on the client-side.
 
-### Variables d'Environnement
+### Environment Variables
 
-**Variables requises :**
+Securely managing your API keys and secrets is crucial for the security of your application.
+
+**Required Variables:**
 
 ```bash
-# Clerk (obligatoire)
+# Clerk (mandatory)
 CLERK_SECRET_KEY=sk_test_...
 
-# Supabase (obligatoire)
+# Supabase (mandatory)
 SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ... # For backend use only
 
-# Environment (optionnel)
+# Environment (optional, defaults to 'development')
 NODE_ENV=development
 ```
 
-**Sécurité :**
+**Security Best Practices:**
 
-- **Ne jamais commiter** les clés secrètes
-- **Utiliser des variables d'environnement** pour toutes les clés
-- **Valider les variables** au démarrage
+-   **Never commit secrets:** Your `.gitignore` file should include `.env` and other files containing sensitive information.
+-   **Use environment variables:** Store all keys and secrets in environment variables, not in your code.
+-   **Validate variables on startup:** Ensure that all required environment variables are present and valid when your application starts.
 
 ## 🛡️ Row Level Security (RLS)
 
-### Principe
+### The Principle of RLS
 
-Row Level Security est une fonctionnalité de PostgreSQL qui permet de contrôler l'accès aux lignes d'une table en fonction de l'utilisateur qui effectue la requête.
+Row Level Security (RLS) is a feature of PostgreSQL that allows you to control access to rows in a database table based on the characteristics of the user executing the query. It acts as a powerful security mechanism to ensure that users can only access the data they are authorized to see.
 
-### Politiques RLS sur la Table `users`
+### RLS Policies on the `users` Table
+
+Here are some example RLS policies that you might apply to your `users` table:
 
 ```sql
--- Politique d'insertion
+-- Allow users to insert their own data
 CREATE POLICY "Users can insert their own data" ON users
 FOR INSERT WITH CHECK (auth.uid() = clerk_user_id);
 
--- Politique de lecture
+-- Allow users to read their own data
 CREATE POLICY "Users can read their own data" ON users
 FOR SELECT USING (auth.uid() = clerk_user_id);
 
--- Politique de mise à jour
+-- Allow users to update their own data
 CREATE POLICY "Users can update their own data" ON users
 FOR UPDATE USING (auth.uid() = clerk_user_id);
 ```
 
-### Contournement RLS avec Service Role
+### Bypassing RLS with the Service Role Key
 
-Le package utilise la clé de service role (`SUPABASE_SERVICE_ROLE_KEY`) pour contourner les politiques RLS lors des opérations serveur :
+The `@editia/core` package is designed to be used on the backend, where it often needs to perform administrative tasks that require bypassing RLS policies. For this reason, it uses the `SUPABASE_SERVICE_ROLE_KEY`.
 
 ```typescript
-// Initialisation avec service role key
+// Initializing with the service role key
 this.supabaseClient = createClient(
   config.supabaseUrl,
-  config.supabaseServiceRoleKey,
+  config.supabaseServiceRoleKey, // This key bypasses RLS
   {
     auth: {
       autoRefreshToken: false,
@@ -83,47 +87,52 @@ this.supabaseClient = createClient(
 );
 ```
 
-**Pourquoi contourner RLS ?**
+**Why is it necessary to bypass RLS?**
 
-1. **Opérations d'administration** : Le serveur doit pouvoir lire tous les utilisateurs
-2. **Synchronisation** : Mise à jour des données utilisateur depuis les services
-3. **Authentification** : Vérification de l'existence d'un utilisateur
+1.  **Administrative Operations:** The backend needs to be able to read and write data across all users, for example, to update usage metrics or manage subscriptions.
+2.  **Data Synchronization:** The service needs to be able to synchronize data between different services, such as Clerk and Supabase.
+3.  **Authentication:** During the authentication process, the service needs to be able to look up a user in the database to verify their existence.
 
-### Sécurité du Contournement
+### Security Implications of the Service Role Key
 
-**Mesures de sécurité :**
+The `SUPABASE_SERVICE_ROLE_KEY` is a powerful secret that should be handled with extreme care.
 
-- **Clé de service role** : Utilisée uniquement côté serveur
-- **Jamais exposée** : La clé n'est jamais envoyée au client
-- **Logs d'audit** : Toutes les opérations sont loggées
-- **Validation stricte** : Vérification des permissions avant les opérations
+**Security Measures:**
 
-## 🔑 Gestion des Clés
+-   **Server-Side Only:** This key should only be used on the server-side and should never be exposed to the client.
+-   **Strict Access Control:** Access to the key should be limited to authorized personnel only.
+-   **Audit Logging:** All operations performed with the service role key should be logged to provide an audit trail.
 
-### Clés Supabase
+## 🔑 Key Management
 
-| Clé                  | Usage              | Sécurité                        |
+### Supabase Keys
+
+It's important to understand the difference between the two main types of Supabase keys:
+
+| Key                  | Usage              | Security Implications           |
 | -------------------- | ------------------ | ------------------------------- |
-| **Service Role Key** | Opérations serveur | Contourne RLS, jamais exposée   |
-| **Anon Key**         | Opérations client  | Respecte RLS, peut être exposée |
+| **Service Role Key** | Backend operations | Bypasses RLS, never expose      |
+| **Anon Key**         | Client-side operations | Respects RLS, can be exposed    |
 
-### Bonnes Pratiques
+### Best Practices
 
 ```typescript
-// ✅ Correct : Service role pour les opérations serveur
+// ✅ Correct: Use the service role key for backend operations
 initializeEditiaCore({
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
 });
 
-// ❌ Incorrect : Anon key pour les opérations serveur
+// ❌ Incorrect: Do not use the anon key for backend operations
 initializeEditiaCore({
-  supabaseAnonKey: process.env.SUPABASE_ANON_KEY!, // Respecte RLS
+  supabaseAnonKey: process.env.SUPABASE_ANON_KEY!, // This will fail for administrative tasks
 });
 ```
 
-## 🚨 Gestion des Erreurs
+## 🚨 Error Handling
 
-### Erreurs d'Authentification
+### Authentication Errors
+
+The package provides a set of standardized error codes to help you handle authentication failures.
 
 ```typescript
 interface AuthErrorResponse {
@@ -133,109 +142,66 @@ interface AuthErrorResponse {
 }
 ```
 
-**Codes d'erreur :**
+**Error Codes:**
 
-- `AUTH_HEADER_MISSING` (401) : Header d'autorisation manquant
-- `INVALID_TOKEN_FORMAT` (401) : Format de token invalide
-- `TOKEN_VERIFICATION_FAILED` (401) : Échec de vérification
-- `USER_NOT_FOUND` (404) : Utilisateur non trouvé
+-   `AUTH_HEADER_MISSING` (401): The `Authorization` header is missing from the request.
+-   `INVALID_TOKEN_FORMAT` (401): The JWT token is not in the correct format.
+-   `TOKEN_VERIFICATION_FAILED` (401): The token could not be verified.
+-   `USER_NOT_FOUND` (404): The user does not exist in the database.
 
-### Erreurs RLS
+### RLS Errors
 
-**Problème :** `new row violates row-level security policy`
+If you encounter the error `new row violates row-level security policy`, it means that you are trying to perform an operation that is not allowed by your RLS policies. This typically happens when you are using the `anon` key instead of the `service_role` key for a backend operation.
 
-**Cause :** Tentative d'insertion/mise à jour avec une clé qui respecte RLS
+**Solution:** Ensure that you are initializing the `@editia/core` package with the `SUPABASE_SERVICE_ROLE_KEY`.
 
-**Solution :** Utiliser la clé de service role
+## 📊 Auditing and Logging
 
-```typescript
-// ✅ Solution : Service role key
-initializeEditiaCore({
-  supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY!,
-});
-```
+While the `@editia/core` package does not include a built-in logging solution, we strongly recommend that you implement your own logging to track security-related events.
 
-## 📊 Audit et Logs
+**Recommended Logs:**
 
-### Logs d'Authentification
+-   Failed authentication attempts.
+-   Access to protected resources.
+-   Modifications to user data.
+-   Use of the service role key.
 
-```typescript
-// Logs automatiques dans le service
-console.log('Editia Core initialized successfully', {
-  environment: config.environment || 'development',
-});
-
-// Logs d'erreur
-console.error('Failed to initialize Editia Core:', errorMessage);
-```
-
-### Logs de Sécurité
-
-**À implémenter :**
-
-- Tentatives d'authentification échouées
-- Accès aux ressources protégées
-- Modifications des données utilisateur
-- Utilisation des clés de service
-
-## 🔄 Flux de Sécurité
+## 🔄 Security Flow
 
 ```mermaid
 graph TD
-    A[Request] --> B[Extract Auth Header]
-    B --> C[Validate JWT with Clerk]
-    C --> D[Get Clerk User]
-    D --> E[Find User in Supabase]
-    E --> F[Check Permissions]
-    F --> G[Allow/Deny Access]
+    A[Request] --> B[Extract Auth Header];
+    B --> C{Validate JWT with Clerk};
+    C -- Valid --> D[Get Clerk User];
+    D --> E{Find User in Supabase};
+    E -- Found --> F[Check Permissions];
+    F -- Allowed --> G[Allow Access];
+    F -- Denied --> M[Return 403];
 
-    C --> H[Invalid Token]
-    H --> I[Return 401]
+    C -- Invalid --> H[Invalid Token];
+    H --> I[Return 401];
 
-    E --> J[User Not Found]
-    J --> K[Return 404]
-
-    F --> L[Insufficient Permissions]
-    L --> M[Return 403]
+    E -- Not Found --> J[User Not Found];
+    J --> K[Return 404];
 ```
 
-## 🛠️ Configuration de Production
+## 🛠️ Production Configuration
 
-### Variables d'Environnement
+When deploying your application to production, it is crucial to use production-specific keys and settings.
 
 ```bash
-# Production
+# Production environment variables
 NODE_ENV=production
 CLERK_SECRET_KEY=sk_live_...
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
 
-# Logs de sécurité
+# Security and logging settings
 LOG_LEVEL=info
 SECURITY_AUDIT_ENABLED=true
 ```
 
-### Validation de Sécurité
+## 🔗 Useful Links
 
-```typescript
-function validateSecurityConfig() {
-  // Vérifier que les clés de production sont utilisées
-  if (process.env.NODE_ENV === 'production') {
-    if (!process.env.CLERK_SECRET_KEY?.startsWith('sk_live_')) {
-      throw new Error('Production requires live Clerk key');
-    }
-  }
-
-  // Vérifier la longueur des clés
-  if (process.env.SUPABASE_SERVICE_ROLE_KEY?.length < 100) {
-    throw new Error('Invalid Supabase service role key length');
-  }
-}
-```
-
-## 🔗 Liens Utiles
-
-- **[Authentification Clerk](./clerk-integration.md)**
-- **[Base de Données](./database.md)**
-- **[Installation & Configuration](../setup/README.md)**
-- **[API Reference](../api/README.md)**
+-   [Clerk Authentication](https://clerk.com/docs)
+-   [Supabase RLS](https://supabase.com/docs/guides/auth/row-level-security)

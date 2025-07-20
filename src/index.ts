@@ -15,6 +15,10 @@ export * from './types';
 // React Native hooks
 export * from './hooks';
 
+// Middleware
+export * from './middleware';
+
+
 // ============================================================================
 // SERVICES
 // ============================================================================
@@ -29,5 +33,5 @@ export * from './services/monetization';
 // VERSION INFO
 // ============================================================================
 
-export const VERSION = '1.1.0';
+export const VERSION = '1.4.0';
 export const PACKAGE_NAME = 'editia-core'; 

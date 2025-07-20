@@ -1,6 +1,6 @@
 # Editia Core
 
-Un package TypeScript pour l'authentification, la monétisation et la gestion de base de données unifiées pour toutes les applications Editia.
+A TypeScript package for unified authentication, monetization, and database management for all Editia applications.
 
 ## 🚀 Installation
 
@@ -8,35 +8,39 @@ Un package TypeScript pour l'authentification, la monétisation et la gestion de
 npm install editia-core
 ```
 
-## 📦 Fonctionnalités
+## 📦 Features
 
-- **Authentification Clerk + Supabase** : Vérification JWT et gestion utilisateurs
-- **Middleware Express** : Protection de routes avec authentification
-- **TypeScript** : Types complets et sécurité de type
-- **Sans logging** : Délégation de la gestion des logs à l'application
+-   **Clerk + Supabase Authentication:** JWT verification and user management.
+-   **Express Middleware:** Protect your routes with authentication and monetization middleware.
+-   **TypeScript:** Full type safety and autocompletion.
+-   **No Logging:** Delegates logging to the main application for greater flexibility.
 
-## 🔧 Initialisation
+## 🔧 Initialization
+
+To use the package, you must first initialize it with your environment variables.
 
 ```typescript
 import { initializeEditiaCore } from 'editia-core';
 
-// Initialiser le package avec vos variables d'environnement
+// Initialize the package with your environment variables
 initializeEditiaCore({
   clerkSecretKey: process.env.CLERK_SECRET_KEY!,
   supabaseUrl: process.env.SUPABASE_URL!,
-  supabaseAnonKey: process.env.SUPABASE_ANON_KEY!,
+  supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY!, // Use the service role key for backend operations
   environment: process.env.NODE_ENV || 'development',
 });
 ```
 
-## 🔐 Authentification
+## 🔐 Authentication
 
-### Utilisation du Service Directement
+### Using the Service Directly
+
+You can use the `ClerkAuthService` directly in your route handlers to verify users.
 
 ```typescript
 import { ClerkAuthService } from 'editia-core';
 
-// Dans un endpoint Express
+// In an Express endpoint
 app.get('/api/user-voices', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
@@ -47,8 +51,8 @@ app.get('/api/user-voices', async (req, res) => {
       return res.status(errorResponse.status).json(errorResponse);
     }
 
-    // user contient les données de l'utilisateur depuis Supabase
-    // clerkUser contient les données de l'utilisateur depuis Clerk
+    // user contains the user data from Supabase
+    // clerkUser contains the user data from Clerk
 
     res.json({
       success: true,
@@ -67,14 +71,16 @@ app.get('/api/user-voices', async (req, res) => {
 });
 ```
 
-### Utilisation du Middleware
+### Using the Middleware
+
+The package provides a set of Express middleware functions to simplify route protection.
 
 ```typescript
 import { authenticateUser } from 'editia-core';
 
-// Protéger une route avec le middleware
+// Protect a route with the middleware
 app.get('/api/protected', authenticateUser, (req, res) => {
-  // req.user contient l'utilisateur authentifié
+  // req.user contains the authenticated user
   res.json({
     success: true,
     user: {
@@ -85,124 +91,91 @@ app.get('/api/protected', authenticateUser, (req, res) => {
 });
 ```
 
-## 📋 Exemple Complet : Endpoint User Voices
+## 💰 Monetization
 
-Voici un exemple complet d'implémentation d'un endpoint utilisant le package :
+The package includes a powerful monetization system that allows you to protect routes based on user subscriptions and usage limits.
+
+### Using the Monetization Middleware
 
 ```typescript
-import express from 'express';
-import { ClerkAuthService, initializeEditiaCore } from 'editia-core';
-import { createClient } from '@supabase/supabase-js';
+import {
+  authenticateUser,
+  videoGenerationMiddleware,
+  createUsageIncrementMiddleware,
+} from 'editia-core';
 
-// Initialiser le package
-initializeEditiaCore({
-  clerkSecretKey: process.env.CLERK_SECRET_KEY!,
-  supabaseUrl: process.env.SUPABASE_URL!,
-  supabaseAnonKey: process.env.SUPABASE_ANON_KEY!,
-  environment: 'production',
-});
-
-const app = express();
-app.use(express.json());
-
-// Endpoint pour récupérer les voix de l'utilisateur
-app.get('/api/user-voices', async (req, res) => {
-  try {
-    // 1. Authentifier l'utilisateur avec le package
-    const authHeader = req.headers.authorization;
-    const { user, errorResponse } =
-      await ClerkAuthService.verifyUser(authHeader);
-
-    if (errorResponse || !user) {
-      return res.status(errorResponse?.status || 401).json(
-        errorResponse || {
-          success: false,
-          error: 'User not found',
-        }
-      );
-    }
-
-    // 2. Utiliser Supabase pour récupérer les données
-    const supabase = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_ANON_KEY!
-    );
-
-    const { data, error } = await supabase
-      .from('voice_clones')
-      .select('*')
-      .eq('user_id', user.id);
-
-    if (error) {
-      return res.status(500).json({
-        success: false,
-        error: error.message,
-      });
-    }
-
-    // 3. Retourner les données
-    return res.status(200).json({
-      success: true,
-      data,
-      user: {
-        id: user.id,
-        email: user.email,
-      },
-    });
-  } catch (error: any) {
-    return res.status(500).json({
-      success: false,
-      error: error.message || 'Internal server error',
-    });
+// Protect the video generation route
+app.post(
+  '/api/videos/generate',
+  authenticateUser, // 1. Authenticate the user
+  videoGenerationMiddleware, // 2. Check monetization
+  createUsageIncrementMiddleware(), // 3. Increment usage on success
+  async (req, res) => {
+    // Your video generation logic here
+    res.json({ success: true, videoUrl: '...' });
   }
-});
-
-app.listen(3000, () => {
-  console.log('Server running on port 3000');
-});
+);
 ```
 
-## 🎯 API Reference
+For more details on the monetization system, see the [Backend Monetization System documentation](./docs/monetization/backend-monetization-system.md).
 
-### ClerkAuthService
+## 📋 API Reference
+
+### `initializeEditiaCore(config: AuthConfig)`
+
+Initializes the package with your environment variables. This must be called before any other methods.
+
+**Parameters:**
+
+-   `config` (`AuthConfig`): An object containing your Clerk and Supabase credentials.
+
+### `ClerkAuthService`
 
 #### `verifyUser(authHeader?: string)`
 
-Vérifie un token JWT Clerk et retourne les informations utilisateur.
+Verifies a Clerk JWT and returns the corresponding user information from both Clerk and Supabase.
 
-**Paramètres :**
+**Parameters:**
 
-- `authHeader` (string, optionnel) : Header Authorization (format: "Bearer <token>")
+-   `authHeader` (`string`, optional): The `Authorization` header (e.g., "Bearer <token>").
 
-**Retour :**
+**Returns:**
 
 ```typescript
 {
-  user: DatabaseUser | null; // Utilisateur depuis Supabase
-  clerkUser: ClerkUser | null; // Utilisateur depuis Clerk
-  errorResponse: AuthErrorResponse | null; // Erreur si échec
+  user: DatabaseUser | null; // The user from Supabase
+  clerkUser: ClerkUser | null; // The user from Clerk
+  errorResponse: AuthErrorResponse | null; // An error object if verification fails
 }
 ```
 
 #### `getDatabaseUserId(authHeader?: string)`
 
-Récupère uniquement l'ID utilisateur depuis la base de données.
+Retrieves only the user ID from the database.
 
-**Retour :** `string | null`
+**Returns:** `string | null`
 
 ### Middleware
 
 #### `authenticateUser`
 
-Middleware Express pour protéger les routes.
+An Express middleware that protects routes by requiring a valid Clerk JWT.
 
-**Utilisation :**
+**Usage:**
 
 ```typescript
 app.get('/protected', authenticateUser, (req, res) => {
-  // req.user contient l'utilisateur authentifié
+  // req.user contains the authenticated user
 });
 ```
+
+#### `videoGenerationMiddleware`
+
+An Express middleware that protects video generation routes based on the user's subscription plan and usage limits.
+
+#### `createUsageIncrementMiddleware()`
+
+An Express middleware that increments a user's usage for a specific action after a successful operation.
 
 ### Types
 
@@ -227,61 +200,26 @@ interface AuthenticatedRequest extends Request {
 }
 ```
 
-## 🔄 Migration depuis l'ancien système
-
-Si vous migrez depuis un système d'authentification existant :
-
-1. **Remplacer les imports :**
-
-   ```typescript
-   // Avant
-   import { ClerkAuthService } from '../services/clerkAuthService';
-
-   // Après
-   import { ClerkAuthService } from 'editia-core';
-   ```
-
-2. **Initialiser le package :**
-
-   ```typescript
-   // Ajouter au début de votre app.ts
-   import { initializeEditiaCore } from 'editia-core';
-
-   initializeEditiaCore({
-     clerkSecretKey: process.env.CLERK_SECRET_KEY!,
-     supabaseUrl: process.env.SUPABASE_URL!,
-     supabaseAnonKey: process.env.SUPABASE_ANON_KEY!,
-     environment: process.env.NODE_ENV || 'development',
-   });
-   ```
-
-3. **Les appels d'API restent identiques :**
-   ```typescript
-   // Le code existant continue de fonctionner
-   const { user, clerkUser, errorResponse } =
-     await ClerkAuthService.verifyUser(authHeader);
-   ```
-
 ## 🧪 Tests
 
-Le package inclut des tests complets avec Vitest :
+The package includes a comprehensive test suite using Vitest.
 
 ```bash
 npm test
 ```
 
-## 📝 Logs
+## 📝 Logging
 
-**Important :** Ce package ne gère pas les logs. La gestion des logs est déléguée à l'application principale pour une meilleure flexibilité et contrôle.
+**Important:** This package does not handle logging. It is the responsibility of the consuming application to implement a logging solution.
 
-## 🤝 Contribution
+## 🤝 Contributing
 
-1. Fork le repository
-2. Créer une branche feature (`git checkout -b feature/amazing-feature`)
-3. Commit les changements (`git commit -m 'Add amazing feature'`)
-4. Push vers la branche (`git push origin feature/amazing-feature`)
-5. Ouvrir une Pull Request
+1.  Fork the repository.
+2.  Create a feature branch (`git checkout -b feature/amazing-feature`).
+3.  Commit your changes (`git commit -m 'Add amazing feature'`).
+4.  Push to the branch (`git push origin feature/amazing-feature`).
+5.  Open a Pull Request.
 
-## 📄 Licence
+## 📄 License
 
-MIT License - voir le fichier [LICENSE](LICENSE) pour plus de détails.
+MIT License - see the [LICENSE](LICENSE) file for more details.

@@ -28,7 +28,7 @@ export {
   logMonetizationChecks,
   MonetizationMiddlewareConfig,
   MonetizationRequest,
-} from '../../middleware/monetization-middleware';
+} from '../../middleware/monetization/monetization-middleware';
 
 // ============================================================================
 // PRESET MIDDLEWARE
@@ -41,7 +41,7 @@ export {
   accountAnalysisMiddleware,
   scriptGenerationMiddleware,
   chatAiMiddleware,
-} from '../../middleware/monetization-middleware';
+} from '../../middleware/monetization/monetization-middleware';
 
 // ============================================================================
 // ERROR HANDLERS
@@ -50,4 +50,4 @@ export {
 export {
   defaultMonetizationErrorHandler,
   userFriendlyMonetizationErrorHandler,
-} from '../../middleware/monetization-middleware'; 
+} from '../../middleware/monetization/monetization-middleware'; 

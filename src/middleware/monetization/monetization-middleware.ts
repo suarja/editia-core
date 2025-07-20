@@ -6,7 +6,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { MonetizationService, MonetizationCheckResult } from '../services/monetization/monetization-service';
+import { MonetizationService, MonetizationCheckResult } from '../../services/monetization/monetization-service';
 
 // ============================================================================
 // TYPES
