@@ -282,13 +282,11 @@ export class MonetizationService {
       };
 
       const field = fieldMap[action];
-      const { error } = await this.supabaseClient
-        .from('user_usage')
-        .update({ [field]: this.supabaseClient.rpc('increment_user_usage', { 
+      const { error } = await this.supabaseClient.rpc('increment_user_usage', { 
           p_user_id: userId, 
           p_field_to_increment: field 
-        }) })
-        .eq('user_id', userId);
+        }) 
+       
 
       if (error) {
         console.error('Error incrementing usage:', error);
