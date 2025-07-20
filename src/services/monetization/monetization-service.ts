@@ -18,6 +18,8 @@ import {
   hasReachedLimit,
   FEATURE_FLAGS,
   DEFAULT_PLAN_LIMITS,
+  MonetizationErrorCode,
+  MONETIZATION_ERROR_CODES,
 } from '../../types';
 import {
   FeatureId,
@@ -42,6 +44,34 @@ import {
 export interface MonetizationConfig {
   supabaseClient: SupabaseClient<Database>;
   environment?: 'development' | 'production' | 'test';
+}
+
+
+// ============================================================================
+//
+// Monetization Errors
+//
+// ============================================================================
+
+
+export class MonetizationError extends Error {
+  public code: string;
+  constructor(message: string, code: MonetizationErrorCode) {
+    super(message);
+    this.name = 'MonetizationError';
+    this.code = code;
+  }
+}
+
+// Parse the error code from the error message to show in the UI
+export function parseMonetizationError(error: MonetizationError): MonetizationErrorCode {
+  const match = error.message.match(/^MonetizationError: (\w+)/);
+  return match ? match[1] as MonetizationErrorCode : MONETIZATION_ERROR_CODES.MONETIZATION_SERVICE_ERROR;
+}
+
+// Check if the error is a MonetizationError
+export function isMonetizationError(error: Error): error is MonetizationError {
+  return error instanceof MonetizationError;
 }
 
 // ============================================================================
