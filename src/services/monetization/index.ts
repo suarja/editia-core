@@ -12,6 +12,9 @@
 export {
   MonetizationService,
   MonetizationConfig,
+  MonetizationError,
+  parseMonetizationError,
+  isMonetizationError,
 } from './monetization-service';
 
 // ============================================================================
