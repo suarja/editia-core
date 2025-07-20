@@ -845,6 +845,8 @@ export type Database = {
           is_active: boolean | null
           is_unlimited: boolean
           name: string
+          script_conversations_limit: number
+          script_conversations_used: number
           source_videos_limit: number
           videos_generated_limit: number
           voice_clones_limit: number
@@ -857,6 +859,8 @@ export type Database = {
           is_active?: boolean | null
           is_unlimited?: boolean
           name: string
+          script_conversations_limit?: number
+          script_conversations_used?: number
           source_videos_limit: number
           videos_generated_limit: number
           voice_clones_limit: number
@@ -869,6 +873,8 @@ export type Database = {
           is_active?: boolean | null
           is_unlimited?: boolean
           name?: string
+          script_conversations_limit?: number
+          script_conversations_used?: number
           source_videos_limit?: number
           videos_generated_limit?: number
           voice_clones_limit?: number
@@ -1127,6 +1133,8 @@ export type Database = {
           id: string
           last_reset_date: string
           next_reset_date: string
+          script_conversations_limit: number
+          script_conversations_used: number
           source_videos_limit: number
           source_videos_used: number
           subscription_status: string | null
@@ -1147,6 +1155,8 @@ export type Database = {
           id?: string
           last_reset_date?: string
           next_reset_date?: string
+          script_conversations_limit?: number
+          script_conversations_used?: number
           source_videos_limit?: number
           source_videos_used?: number
           subscription_status?: string | null
@@ -1167,6 +1177,8 @@ export type Database = {
           id?: string
           last_reset_date?: string
           next_reset_date?: string
+          script_conversations_limit?: number
+          script_conversations_used?: number
           source_videos_limit?: number
           source_videos_used?: number
           subscription_status?: string | null

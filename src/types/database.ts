@@ -18,7 +18,7 @@ export type {
 } from './database.types';
 
 // Import Database type for utility functions
-import type { Database } from './database.types';
+import type { Database, Tables } from './database.types';
 
 // ============================================================================
 // TYPE MAPPING UTILITIES
@@ -48,6 +48,8 @@ export type TableUpdate<T extends keyof Database['public']['Tables']> =
 export type DatabaseEnum<T extends keyof Database['public']['Enums']> = 
   Database['public']['Enums'][T];
 
+  
+
 // ============================================================================
 // ABSTRACTED TYPES (for better DX)
 // ============================================================================
@@ -60,64 +62,25 @@ export type PlanIdentifier = 'free' | 'creator' | 'pro';
 /**
  * User usage data - abstracted from user_usage table
  */
-export interface UserUsage {
-  user_id: string;
-  current_plan_id: PlanIdentifier;
-  videos_generated: number;
-  videos_generated_limit: number;
-  source_videos_used: number;
-  source_videos_limit: number;
-  voice_clones_used: number;
-  voice_clones_limit: number;
-  account_analysis_used: number;
-  account_analysis_limit: number;
-  next_reset_date: string;
-  created_at?: string;
-  updated_at?: string;
-}
+export type UserUsage = TableRow<'user_usage'>;
 
 /**
  * Subscription plan data - abstracted from subscription_plans table
  */
-export interface SubscriptionPlan {
-  id: PlanIdentifier;
-  name: string;
-  description?: string;
-  videos_generated_limit: number;
-  source_videos_limit: number;
-  voice_clones_limit: number;
-  account_analysis_limit: number;
-  is_unlimited: boolean;
-  is_active?: boolean;
-  created_at?: string;
-}
+export type SubscriptionPlan = TableRow<'subscription_plans'>;
+
 
 /**
  * Feature flag data - abstracted from feature_flags table
  */
-export interface FeatureFlag {
-  id: string;
-  name: string;
-  description?: string;
-  required_plan: PlanIdentifier | null;
-  is_active: boolean;
-  created_at?: string;
-}
+export type FeatureFlag = TableRow<'feature_flags'>;
+
 
 /**
  * User data - abstracted from users table
  */
-export interface User {
-  id: string;
-  email?: string;
-  full_name?: string;
-  avatar_url?: string;
-  role?: string;
-  clerk_user_id: string;
-  stripe_customer_id?: string;
-  created_at?: string;
-  updated_at?: string;
-}
+export type User = TableRow<'users'>;
+
 
 /**
  * Editorial profile data - abstracted from editorial_profiles table

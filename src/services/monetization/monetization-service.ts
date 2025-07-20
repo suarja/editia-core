@@ -45,6 +45,7 @@ export interface UsageValidationResult {
   error?: string;
 }
 
+
 export interface MonetizationCheckResult {
   success: boolean;
   hasAccess: boolean;
@@ -55,7 +56,7 @@ export interface MonetizationCheckResult {
   details?: {
     featureId: string;
     requiredPlan: PlanIdentifier | null;
-    usageType: 'videos' | 'source_videos' | 'voice_clones' | 'account_analysis';
+    usageType: 'videos' | 'source_videos' | 'voice_clones' | 'account_analysis' | 'script_conversations';
   };
 }
 
@@ -127,7 +128,7 @@ export class MonetizationService {
       const requiredPlan = featureRequirements?.required_plan as PlanIdentifier;
 
       // Check plan access
-      const hasAccess = !requiredPlan || hasPlanAccess(userUsage.current_plan_id, requiredPlan);
+      const hasAccess = !requiredPlan || hasPlanAccess(userUsage.current_plan_id as PlanIdentifier, requiredPlan);
 
       // Get usage info for the feature
       const usageInfo = this.getUsageInfoForFeature(featureId, userUsage);
@@ -137,7 +138,7 @@ export class MonetizationService {
         requiredPlan,
         remainingUsage: calculateRemainingUsage(usageInfo.used, usageInfo.total),
         totalLimit: usageInfo.total,
-        currentPlan: userUsage.current_plan_id,
+        currentPlan: userUsage.current_plan_id as PlanIdentifier,
       };
     } catch (error) {
       console.error('Error checking feature access:', error);
@@ -157,7 +158,7 @@ export class MonetizationService {
    */
   public async validateUsage(
     userId: string,
-    action: 'video_generation' | 'source_video_upload' | 'voice_clone' | 'account_analysis'
+    action: 'video_generation' | 'source_video_upload' | 'voice_clone' | 'account_analysis' | 'script_conversations'
   ): Promise<UsageValidationResult> {
     try {
       const userUsage = await this.getUserUsage(userId);
@@ -271,7 +272,7 @@ export class MonetizationService {
    */
   public async incrementUsage(
     userId: string,
-    action: 'video_generation' | 'source_video_upload' | 'voice_clone' | 'account_analysis'
+    action: 'video_generation' | 'source_video_upload' | 'voice_clone' | 'account_analysis' | 'script_conversations'  
   ): Promise<boolean> {
     try {
       const fieldMap = {
@@ -279,6 +280,7 @@ export class MonetizationService {
         source_video_upload: 'source_videos_used',
         voice_clone: 'voice_clones_used',
         account_analysis: 'account_analysis_used',
+        script_conversations: 'script_conversations_used',
       };
 
       const field = fieldMap[action];
@@ -307,7 +309,7 @@ export class MonetizationService {
    */
   public async decrementUsage(
     userId: string,
-    action: 'video_generation' | 'source_video_upload' | 'voice_clone' | 'account_analysis'
+    action: 'video_generation' | 'source_video_upload' | 'voice_clone' | 'account_analysis' | 'script_conversations'
   ): Promise<boolean> {
     try {
       const fieldMap = {
@@ -315,6 +317,7 @@ export class MonetizationService {
         source_video_upload: 'source_videos_used',
         voice_clone: 'voice_clones_used',
         account_analysis: 'account_analysis_used',
+        script_conversations: 'script_conversations_used',
       };
 
       const field = fieldMap[action];
@@ -428,6 +431,10 @@ export class MonetizationService {
         used: userUsage.account_analysis_used,
         total: userUsage.account_analysis_limit,
       },
+      'script_conversations': {
+        used: userUsage.script_conversations_used,
+        total: userUsage.script_conversations_limit,
+      },
     };
 
     return usageMap[featureId] || { used: 0, total: 0 };
@@ -454,6 +461,10 @@ export class MonetizationService {
         used: userUsage.account_analysis_used,
         total: userUsage.account_analysis_limit,
       },
+      'script_conversations': {
+        used: userUsage.script_conversations_used,
+        total: userUsage.script_conversations_limit,
+      },
     };
 
     return actionMap[action] || { used: 0, total: 0 };
@@ -462,12 +473,13 @@ export class MonetizationService {
   /**
    * Map feature ID to action type
    */
-  private getActionForFeature(featureId: string): 'video_generation' | 'source_video_upload' | 'voice_clone' | 'account_analysis' {
+  private getActionForFeature(featureId: string): 'video_generation' | 'source_video_upload' | 'voice_clone' | 'account_analysis' | 'script_conversations' {
     const featureActionMap: Record<string, any> = {
       'video_generation': 'video_generation',
       'source_videos': 'source_video_upload',
       'voice_clone': 'voice_clone',
       'account_analysis': 'account_analysis',
+      'script_conversations': 'script_conversations',
     };
 
     return featureActionMap[featureId] || 'video_generation';
@@ -476,13 +488,14 @@ export class MonetizationService {
   /**
    * Map feature ID to usage type
    */
-  private getUsageTypeForFeature(featureId: string): 'videos' | 'source_videos' | 'voice_clones' | 'account_analysis' {
+  private getUsageTypeForFeature(featureId: string): 'videos' | 'source_videos' | 'voice_clones' | 'account_analysis' | 'script_conversations' {
     const featureUsageMap: Record<string, any> = {
       'video_generation': 'videos',
       'source_videos': 'source_videos',
       'voice_clone': 'voice_clones',
       'account_analysis': 'account_analysis',
-    };
+      'script_conversations': 'script_conversations',
+      };
 
     return featureUsageMap[featureId] || 'videos';
   }
