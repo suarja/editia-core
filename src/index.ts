@@ -33,5 +33,5 @@ export * from './services/monetization';
 // VERSION INFO
 // ============================================================================
 
-export const VERSION = '1.8.0';
+export const VERSION = '1.8.1';
 export const PACKAGE_NAME = 'editia-core'; 
