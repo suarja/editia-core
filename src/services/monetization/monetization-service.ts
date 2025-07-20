@@ -64,9 +64,8 @@ export class MonetizationError extends Error {
 }
 
 // Parse the error code from the error message to show in the UI
-export function parseMonetizationError(error: MonetizationError): MonetizationErrorCode {
-  const match = error.message.match(/^MonetizationError: (\w+)/);
-  return match ? match[1] as MonetizationErrorCode : MONETIZATION_ERROR_CODES.MONETIZATION_SERVICE_ERROR;
+export function parseMonetizationError(error: MonetizationError): string {
+ return error.message;
 }
 
 // Check if the error is a MonetizationError
