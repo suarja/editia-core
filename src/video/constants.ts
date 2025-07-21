@@ -33,11 +33,12 @@ export type CaptionPlacement = typeof CAPTION_PLACEMENTS[number];
 
 // Transcript effects
 export const TRANSCRIPT_EFFECTS = [
-  'none',
-  'shadow', 
-  'outline',
-  'glow',
-  'background',
+  'karaoke',
+  'highlight',
+  'fade',
+  'bounce',
+  'slide',
+  'enlarge',
 ] as const;
 export type TranscriptEffect = typeof TRANSCRIPT_EFFECTS[number];
 
