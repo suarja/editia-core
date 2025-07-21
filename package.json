@@ -1,6 +1,6 @@
 {
   "name": "editia-core",
-  "version": "1.9.1",
+  "version": "1.9.4",
   "description": "Core services and utilities for Editia applications - Authentication, Monetization, Video Generation Types, and Database Management",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,7 +10,9 @@
       "react-native": "./dist/react-native.js",
       "default": "./dist/index.js"
     },
-    "./react-native": "./dist/react-native.js"
+    "./react-native": "./dist/react-native.js",
+    "./dist/*": "./dist/*",
+    "./*": "./*"
   },
   "scripts": {
     "build": "tsc",
@@ -82,6 +84,8 @@
   },
   "files": [
     "dist/",
+    "react-native.js",
+    "react-native.d.ts",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"

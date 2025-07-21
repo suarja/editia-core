@@ -6,7 +6,6 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { MonetizationService } from '../../services/monetization/monetization-service';
 import {
   FeatureId,
   Action,
@@ -230,6 +229,7 @@ export function logMonetizationChecks() {
 // ============================================================================
 
 import { FEATURES, ACTIONS } from '../../types/monetization';
+import { MonetizationService } from '../../services/monetization';
 
 /**
  * Middleware for video generation endpoint
