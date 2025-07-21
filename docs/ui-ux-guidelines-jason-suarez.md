@@ -331,3 +331,15 @@ interface ResponsiveAI {
 - **Cross-Modal Intelligence**: Seamless transitions between text, voice, and visual input
 
 The goal is to create interfaces that feel less like software and more like intelligent conversation partners, where the complexity of AI is hidden behind intuitive, beautiful, and engaging user experiences.
+
+
+
+It's hard. The strategy I'm using:
+
+First step is use Tailwind or other atomic CSS. They do better out of the box. And most importantly, using atomic CSS means that you won't break one page while you're making changes to a different page.
+
+Use some component based framework like React/Angular/etc so that you can work on the view components separately from the rest of the site.
+
+Tell Claude to make a Storybook app for you.
+
+Then browse the Storybook and do a quality check pass on each component one by one (and tell Claude what to fix). It will do a lot better if it's only doing one component at a time, instead of sorting through the noise of the whole site.
