@@ -5,6 +5,16 @@
  * encouraging migration to the new strongly-typed system.
  */
 
+// ============================================================================
+// UTILITY TYPES
+// ============================================================================
+
+/**
+ * Brand utility type for creating distinct types from primitives
+ * This prevents accidental mixing of similar primitive values
+ */
+export type Brand<T, K> = T & { __brand: K };
+
 import type { FeatureId, Action, UsageField } from './monetization';
 import type { UserUsage as NewUserUsage } from './usage-tracking';
 import { FEATURES, ACTIONS, USAGE_FIELDS } from './monetization';

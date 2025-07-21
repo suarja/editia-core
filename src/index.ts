@@ -12,6 +12,9 @@
 // Types and utilities
 export * from './types';
 
+// Video generation types and validation
+export * from './video';
+
 // React Native hooks
 export * from './hooks';
 
@@ -33,5 +36,5 @@ export * from './services/monetization';
 // VERSION INFO
 // ============================================================================
 
-export const VERSION = '1.8.3';
+export const VERSION = '1.9.0';
 export const PACKAGE_NAME = 'editia-core'; 

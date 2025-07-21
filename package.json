@@ -1,7 +1,7 @@
 {
   "name": "editia-core",
-  "version": "1.8.3",
-  "description": "Core services and utilities for Editia applications - Authentication, Monetization, and Database Management",
+  "version": "1.9.0",
+  "description": "Core services and utilities for Editia applications - Authentication, Monetization, Video Generation Types, and Database Management",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -24,13 +24,17 @@
     "editia",
     "authentication",
     "monetization",
+    "video-generation",
+    "type-safety",
+    "validation",
     "supabase",
     "clerk",
     "feature-flags",
     "usage-tracking",
     "typescript",
     "express",
-    "middleware"
+    "middleware",
+    "zod"
   ],
   "author": "Editia Team",
   "license": "MIT",
@@ -44,7 +48,8 @@
   "homepage": "https://github.com/editia/core#readme",
   "dependencies": {
     "@clerk/backend": "^1.0.0",
-    "@supabase/supabase-js": "^2.0.0"
+    "@supabase/supabase-js": "^2.0.0",
+    "zod": "^3.22.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.0",
