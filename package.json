@@ -1,6 +1,6 @@
 {
   "name": "editia-core",
-  "version": "1.9.4",
+  "version": "1.9.5",
   "description": "Core services and utilities for Editia applications - Authentication, Monetization, Video Generation Types, and Database Management",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
