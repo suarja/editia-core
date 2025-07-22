@@ -476,7 +476,7 @@ export class MonetizationService {
    * Get usage information for a specific field
    */
   private getUsageInfoForField(usageField: UsageField, userUsage: UserUsage): UsageInfo {
-    const fieldMap: Record<UsageField, { used: number; total: number }> = {
+    const fieldMap: Record<Exclude<UsageField, 'account_insights_used' | 'account_chat_used'>, { used: number; total: number }> = {
       'videos_generated': {
         used: userUsage.videos_generated,
         total: userUsage.videos_generated_limit,
