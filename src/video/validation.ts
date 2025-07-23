@@ -50,13 +50,9 @@ export const VideoTypeSchema = z.object({
   tags: z.array(z.string()),
   user_id: UserIdSchema,
   created_at: z.string(),
-  updated_at: z.string(),
   duration_seconds: z.number().nullable(),
-  thumbnail_url: z.string().url().optional(),
-  file_size: z.number().positive().optional(),
-  processing_status: z.nativeEnum(VideoRequestStatus).optional(),
-  analysis_data: z.unknown().optional(),
   analysis_status: z.nativeEnum(VideoRequestStatus).optional(),
+  analysis_data: z.unknown().optional(),
 });
 
 // Video generation request schema
