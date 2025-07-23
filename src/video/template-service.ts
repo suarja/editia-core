@@ -33,7 +33,7 @@ export class VideoTemplateService {
     const errors: string[] = [];
     
     // Calculate script duration requirements
-    const scriptLength = scriptText.length;
+    const scriptLength = scriptText.split(' ').length;
     const requiredDuration = scriptLength * VIDEO_DURATION_MULTIPLIER;
     
     // Calculate total available video duration
