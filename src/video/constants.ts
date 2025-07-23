@@ -22,9 +22,9 @@ export const LANGUAGES: Record<Language, string> = {
 // Unified video request status (resolving mobile vs server differences)
 export enum VideoRequestStatus {
   QUEUED = 'queued',
-  PROCESSING = 'processing', // Unified name (was 'rendering' in server)
-  COMPLETED = 'completed',   // Unified name (was 'done' in server)
-  FAILED = 'failed',         // Unified name (was 'error' in server)
+  PROCESSING = 'rendering', // Unified name (was 'rendering' in server)
+  COMPLETED = 'done',   // Unified name (was 'done' in server)
+  FAILED = 'error',         // Unified name (was 'error' in server)
 }
 
 // Caption placement options
