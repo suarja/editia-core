@@ -49,7 +49,7 @@ export const VideoTypeSchema = z.object({
   upload_url: z.string().url('Must be a valid URL'),
   tags: z.array(z.string()),
   user_id: UserIdSchema,
-  created_at: z.string(),
+  created_at: z.string().optional(),
   duration_seconds: z.number().nullable(),
   analysis_status: z.nativeEnum(VideoRequestStatus).optional(),
   analysis_data: z.unknown().optional(),
