@@ -43,4 +43,4 @@ export const TRANSCRIPT_EFFECTS = [
 export type TranscriptEffect = typeof TRANSCRIPT_EFFECTS[number];
 
 // Video template validation constants
-export const VIDEO_DURATION_MULTIPLIER = 0.8; // Conservative formula: script_length * 0.8
+export const VIDEO_DURATION_MULTIPLIER = 0.5; // Conservative formula: script_length * 0.5
