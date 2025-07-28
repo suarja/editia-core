@@ -62,12 +62,12 @@ export interface EnhancedGeneratedVideoType {
   id: string;
   title: string;
   description: string;
-  video_url: string;
+  rendered_url: string;
   thumbnail_url?: string;
   duration_seconds: number;
   file_size?: number;
   created_at: string;
-  status: VideoRequestStatus;
+  status_url: VideoRequestStatus;
   script_id?: ScriptId;
   prompt?: string;
   error_message?: string;
