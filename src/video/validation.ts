@@ -51,7 +51,7 @@ export const VideoTypeSchema = z.object({
   user_id: UserIdSchema,
   created_at: z.string().optional(),
   duration_seconds: z.number().nullable(),
-  analysis_status: z.nativeEnum(VideoRequestStatus).optional(),
+  analysis_status: z.string().optional(),
   analysis_data: z.unknown().optional(),
 });
 
