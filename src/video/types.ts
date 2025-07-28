@@ -62,7 +62,7 @@ export interface EnhancedGeneratedVideoType {
   id: string;
   title: string;
   description: string;
-  rendered_url: string;
+  render_url: string;
   thumbnail_url?: string;
   duration_seconds: number;
   file_size?: number;
