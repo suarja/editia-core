@@ -18,6 +18,11 @@ import type { UsageInfo, UsageField } from './monetization';
 export type UserUsage = DatabaseUserUsage;
 
 /**
+ * Re-export UsageField from monetization types
+ */
+export type { UsageField } from './monetization';
+
+/**
  * Usage limit information for a specific resource
  */
 export interface UsageLimit {

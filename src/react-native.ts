@@ -22,7 +22,8 @@ export type * from './types/compatibility';
 export type { FeatureAccessResult } from './types/monetization';
 export type { FeatureFlag } from './types/feature-flags';
 export type { SubscriptionPlan } from './types/subscriptions';
-export type { UserUsage } from './types/usage-tracking';
+export type { UserUsage, UsageField } from './types/usage-tracking';
+export type { PlanIdentifier } from './types/monetization';
 
 // Re-export only the validation functions and schemas (no services)
 export {
@@ -46,6 +47,9 @@ export {
 
 // Template service without Node.js dependencies
 export { VideoTemplateService } from './video/template-service';
+
+// User usage service (compatible with React Native via @supabase/supabase-js)
+export { UserUsageService, UserUsageServiceConfig } from './services/user-usage';
 
 // ============================================================================
 // EXCLUDED FROM REACT NATIVE
