@@ -32,9 +32,12 @@ export * from './services/auth';
 // Monetization services
 export * from './services/monetization';
 
+// User usage services
+export * from './services/user-usage';
+
 // ============================================================================
 // VERSION INFO
 // ============================================================================
 
-export const VERSION = '2.0.6';
+export const VERSION = '2.1.0';
 export const PACKAGE_NAME = 'editia-core'; 

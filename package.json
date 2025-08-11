@@ -1,6 +1,6 @@
 {
   "name": "editia-core",
-  "version": "2.0.6",
+  "version": "2.1.0",
   "description": "Core services and utilities for Editia applications - Authentication, Monetization, Video Generation Types, and Database Management",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -71,7 +71,7 @@
     "ts-node": "^10.9.0",
     "typedoc": "^0.25.0",
     "typescript": "^5.0.0",
-    "vitest": "^1.0.0"
+    "vitest": "^3.2.4"
   },
   "peerDependencies": {
     "@clerk/backend": "^1.0.0",
