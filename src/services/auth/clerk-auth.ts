@@ -105,43 +105,19 @@ export class ClerkAuthService {
         .single();
 
       if (dbError || !databaseUser) {
-        // Try to create the user automatically if they don't exist
-        console.log(`Creating database user for Clerk user: ${clerkUser.id}`);
-        
-        const { data: newUser, error: createError } = await this.supabaseClient
-          .from('users')
-          .insert([
-            {
-              id: clerkUser.id, // Use Clerk user ID as database user ID
-              clerk_user_id: clerkUser.id,
-              email: clerkUser.emailAddresses[0]?.emailAddress || null,
-              full_name: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || null,
-              avatar_url: clerkUser.imageUrl || null,
-              role: 'user'
-            }
-          ])
-          .select('*')
-          .single();
+        console.warn(`⚠️ [ClerkAuthService] Database user not found for Clerk user: ${clerkUser.id}`);
+        console.warn(`⚠️ [ClerkAuthService] User should be auto-created via Clerk webhook (clerk-webhook-handler).`);
+        console.warn(`⚠️ [ClerkAuthService] If webhook failed, check Supabase Edge Function logs.`);
 
-        if (createError || !newUser) {
-          console.error('Failed to create database user:', createError);
-          return {
-            user: null,
-            clerkUser: clerkUser,
-            errorResponse: {
-              success: false,
-              error: 'Database user not found. Please complete onboarding.',
-              status: 404,
-              hint: 'User exists in Clerk but not in database. Complete onboarding process.',
-            },
-          };
-        }
-
-        console.log(`Successfully created database user: ${newUser.id}`);
         return {
-          user: newUser as DatabaseUser,
+          user: null,
           clerkUser: clerkUser,
-          errorResponse: null,
+          errorResponse: {
+            success: false,
+            error: 'Database user not found. Please complete onboarding.',
+            status: 404,
+            hint: 'User exists in Clerk but not in database. The Clerk webhook should have created this user automatically. Check Edge Function logs if this persists.',
+          },
         };
       }
 
@@ -177,11 +153,37 @@ export class ClerkAuthService {
    * @returns True if user has Pro access
    */
   public static async hasProAccess(authHeader?: string | null): Promise<boolean> {
-    await this.verifyUser(authHeader);
-    
-    // TODO: Implement RevenueCat Pro check
-    // For now, return true to allow testing
-    return true;
+    const { user, errorResponse } = await this.verifyUser(authHeader);
+
+    // If user verification failed, they don't have access
+    if (errorResponse || !user) {
+      return false;
+    }
+
+    try {
+      // Check user's current plan from user_usage table
+      const { data: userUsage, error } = await this.supabaseClient
+        .from('user_usage')
+        .select('current_plan_id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) {
+        console.error('❌ [ClerkAuthService] Error fetching user usage:', error);
+        return false;
+      }
+
+      // User has Pro access if their plan is 'pro' or 'creator'
+      const isPro = userUsage?.current_plan_id === 'pro' ||
+                    userUsage?.current_plan_id === 'creator';
+
+      console.log(`✅ [ClerkAuthService] User ${user.id} Pro access: ${isPro} (plan: ${userUsage?.current_plan_id})`);
+
+      return isPro;
+    } catch (error) {
+      console.error('❌ [ClerkAuthService] Exception checking Pro access:', error);
+      return false;
+    }
   }
 
   /**
