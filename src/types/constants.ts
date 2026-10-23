@@ -16,7 +16,8 @@ import type { PlanIdentifier } from './database';
  */
 export const DEFAULT_PLAN_LIMITS = {
   free: {
-    videos_generated_limit: 1,
+    videos_generated_limit: 5,
+    campaigns_limit: 3,
     source_videos_limit: 5,
     voice_clones_limit: 0,
     account_analysis_limit: 1,
@@ -24,6 +25,7 @@ export const DEFAULT_PLAN_LIMITS = {
   },
   creator: {
     videos_generated_limit: 15,
+    campaigns_limit: 10,
     source_videos_limit: 50,
     voice_clones_limit: 1,
     account_analysis_limit: 4,
@@ -31,6 +33,7 @@ export const DEFAULT_PLAN_LIMITS = {
   },
   pro: {
     videos_generated_limit: -1, // unlimited
+    campaigns_limit: -1, // unlimited
     source_videos_limit: -1, // unlimited
     voice_clones_limit: 2,
     account_analysis_limit: -1, // unlimited

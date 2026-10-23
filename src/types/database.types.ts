@@ -302,6 +302,101 @@ export type Database = {
           },
         ]
       }
+      analysis_feedback: {
+        Row: {
+          comment: string | null
+          created_at: string
+          feedback_type: string | null
+          id: string
+          insight_id: string
+          rating: number
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          feedback_type?: string | null
+          id?: string
+          insight_id: string
+          rating: number
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          feedback_type?: string | null
+          id?: string
+          insight_id?: string
+          rating?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analysis_feedback_insight_id_fkey"
+            columns: ["insight_id"]
+            isOneToOne: false
+            referencedRelation: "accounts_llm_insights"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analysis_feedback_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_plans: {
+        Row: {
+          created_at: string | null
+          funnel_stage: string | null
+          id: string
+          offer_context: Json | null
+          prompt_metadata: Json | null
+          script_content: Json | null
+          target_audience_psych: string | null
+          title: string | null
+          topic: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          funnel_stage?: string | null
+          id?: string
+          offer_context?: Json | null
+          prompt_metadata?: Json | null
+          script_content?: Json | null
+          target_audience_psych?: string | null
+          title?: string | null
+          topic?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          funnel_stage?: string | null
+          id?: string
+          offer_context?: Json | null
+          prompt_metadata?: Json | null
+          script_content?: Json | null
+          target_audience_psych?: string | null
+          title?: string | null
+          topic?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_plans_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       editorial_profiles: {
         Row: {
           audience: string | null
@@ -666,6 +761,51 @@ export type Database = {
           },
         ]
       }
+      script_feedback: {
+        Row: {
+          comment: string | null
+          created_at: string
+          feedback_type: string | null
+          id: string
+          rating: number
+          script_id: string
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          feedback_type?: string | null
+          id?: string
+          rating: number
+          script_id: string
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          feedback_type?: string | null
+          id?: string
+          rating?: number
+          script_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "script_feedback_script_id_fkey"
+            columns: ["script_id"]
+            isOneToOne: false
+            referencedRelation: "content_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "script_feedback_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       runs: {
         Row: {
           account_id: string | null
@@ -839,6 +979,7 @@ export type Database = {
       subscription_plans: {
         Row: {
           account_analysis_limit: number
+          campaigns_limit: number | null
           created_at: string | null
           description: string | null
           id: string
@@ -853,6 +994,7 @@ export type Database = {
         }
         Insert: {
           account_analysis_limit: number
+          campaigns_limit?: number | null
           created_at?: string | null
           description?: string | null
           id: string
@@ -867,6 +1009,7 @@ export type Database = {
         }
         Update: {
           account_analysis_limit?: number
+          campaigns_limit?: number | null
           created_at?: string | null
           description?: string | null
           id?: string
@@ -1128,6 +1271,8 @@ export type Database = {
         Row: {
           account_analysis_limit: number
           account_analysis_used: number
+          campaigns_generated: number | null
+          campaigns_limit: number | null
           created_at: string
           current_plan_id: string
           id: string
@@ -1150,6 +1295,8 @@ export type Database = {
         Insert: {
           account_analysis_limit?: number
           account_analysis_used?: number
+          campaigns_generated?: number | null
+          campaigns_limit?: number | null
           created_at?: string
           current_plan_id?: string
           id?: string
@@ -1172,6 +1319,8 @@ export type Database = {
         Update: {
           account_analysis_limit?: number
           account_analysis_used?: number
+          campaigns_generated?: number | null
+          campaigns_limit?: number | null
           created_at?: string
           current_plan_id?: string
           id?: string

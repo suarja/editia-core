@@ -69,6 +69,8 @@ export class UserUsageService {
           account_analysis_limit: planData.account_analysis_limit,
           script_conversations_used: 0,
           script_conversations_limit: planData.script_conversations_limit,
+          campaigns_generated: 0,
+          campaigns_limit: planData.campaigns_limit,
           subscription_status: 'active',
           next_reset_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         }])
@@ -147,6 +149,7 @@ export class UserUsageService {
           voice_clones_limit: planData.voice_clones_limit,
           account_analysis_limit: planData.account_analysis_limit,
           script_conversations_limit: planData.script_conversations_limit,
+          campaigns_limit: planData.campaigns_limit,
           subscription_status: 'active',
           updated_at: new Date().toISOString(),
         })
@@ -195,6 +198,7 @@ export class UserUsageService {
         'script_conversations_used': 'script_conversations_used',
         'account_insights_used': 'account_analysis_used', // Map to same field
         'account_chat_used': 'account_analysis_used', // Map to same field
+        'campaigns_generated': 'campaigns_generated',
       };
 
       const dbField = fieldMap[field];
@@ -241,6 +245,7 @@ export class UserUsageService {
           voice_clones_used: 0,
           account_analysis_used: 0,
           script_conversations_used: 0,
+          campaigns_generated: 0,
           last_reset_date: new Date().toISOString(),
           next_reset_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
           updated_at: new Date().toISOString(),
@@ -298,6 +303,7 @@ export class UserUsageService {
         'script_conversations_used': { used: 'script_conversations_used', limit: 'script_conversations_limit' },
         'account_insights_used': { used: 'account_analysis_used', limit: 'account_analysis_limit' },
         'account_chat_used': { used: 'account_analysis_used', limit: 'account_analysis_limit' },
+        'campaigns_generated': { used: 'campaigns_generated', limit: 'campaigns_limit' },
       };
 
       const mapping = fieldMap[field];

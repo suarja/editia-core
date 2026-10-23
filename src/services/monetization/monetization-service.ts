@@ -497,6 +497,10 @@ export class MonetizationService {
         used: userUsage.script_conversations_used,
         total: userUsage.script_conversations_limit,
       },
+      'campaigns_generated': {
+        used: userUsage.campaigns_generated || 0,
+        total: userUsage.campaigns_limit || 0,
+      },
     };
 
     const info = fieldMap[usageField] || { used: 0, total: 0 };
